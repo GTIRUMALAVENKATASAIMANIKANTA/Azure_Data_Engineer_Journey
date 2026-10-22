@@ -1,0 +1,113 @@
+# AZURE DATA ENGINEERING — DAY 01
+## Module 01: Data Engineering Fundamentals
+
+### 1. What is Data?
+Data is a collection of raw facts, values, observations, and records that can be processed into meaningful information.
+
+Example: Customer ID, product name, order amount, transaction date.
+
+### 2. What is Data Engineering?
+Data Engineering is the practice of designing, building, testing, and maintaining systems that collect, store, process, and deliver reliable data for analytics and business operations.
+
+### 3. Why Do Companies Need Data Engineers?
+- Data is generated across many systems.
+- Source data can be incomplete, inconsistent, or duplicated.
+- Businesses require accurate and timely analytics.
+- Data pipelines must run automatically and reliably.
+- Failed jobs must be investigated and recovered.
+- Sensitive data must be protected.
+
+### 4. End-to-End Data Engineering Workflow
+1. Identify source systems.
+2. Extract or ingest source data.
+3. Store data securely.
+4. Validate and transform data.
+5. Prepare analytics-ready datasets.
+6. Schedule and orchestrate pipelines.
+7. Monitor executions and data quality.
+8. Troubleshoot failures and maintain pipelines.
+
+### 5. Major Azure Technologies
+- Azure Data Factory: Data ingestion, orchestration, and scheduling.
+- Azure Data Lake Storage Gen2: Cloud-based data storage.
+- Azure SQL Database: Relational database service.
+- Azure Databricks: Data processing and analytics platform.
+- PySpark: Python interface for distributed Apache Spark processing.
+- Delta Lake: Transactional storage layer for lakehouse tables.
+
+### 6. ETL and ELT
+ETL = Extract, Transform, Load.
+ELT = Extract, Load, Transform.
+
+ETL transforms data before loading it into the target.
+ELT loads data into the target processing environment before transforming it.
+
+### 7. Types of Data
+Structured Data: Data organized using a defined schema, such as relational tables.
+
+Semi-Structured Data: Data with identifiable keys or tags but flexible structure, such as JSON and XML.
+
+Unstructured Data: Data without a natural predefined tabular structure, such as images, audio, and video.
+
+### 8. Database Fundamentals
+Database: Organized collection of data.
+Table: Related data organized into rows and columns.
+Row: A single record.
+Column: A specific attribute.
+Schema: Definition of table structure, data types, and constraints.
+Primary Key: A column or combination of columns uniquely identifying each row.
+
+SQL example:
+
+    CREATE TABLE customers (
+        customer_id INT PRIMARY KEY,
+        name VARCHAR(100),
+        city VARCHAR(100)
+    );
+
+### 9. Data Quality
+Data quality includes accuracy, completeness, validity, consistency, uniqueness, and timeliness.
+
+When suspicious records appear:
+1. Verify business rules.
+2. Investigate the source.
+3. Validate against defined requirements.
+4. Preserve and flag/quarantine confirmed invalid records.
+5. Correct issues using approved logic.
+6. Reprocess and verify results.
+
+### 10. Real Company Scenario
+A retail company receives customer, order, payment, and refund data.
+
+A data engineer builds reliable pipelines that ingest source data, preserve raw records, validate data, apply business transformations, and deliver trusted datasets.
+
+### 11. Interview Questions and Answers
+
+Q1: What is Data Engineering?
+A: Building and maintaining reliable systems for collecting, storing, transforming, and delivering data.
+
+Q2: What is a data pipeline?
+A: An automated sequence of steps for moving and processing data.
+
+Q3: What is ETL vs ELT?
+A: ETL transforms before loading; ELT loads before transforming.
+
+Q4: What is structured data?
+A: Data organized using a defined schema, commonly relational tables.
+
+Q5: Is JSON structured or semi-structured?
+A: JSON is generally semi-structured because it supports flexible and nested fields.
+
+Q6: What is a primary key?
+A: A relational database constraint that uniquely identifies each row and disallows NULL key values.
+
+Q7: What should a data engineer do with duplicate records?
+A: Verify business rules and source semantics before implementing deduplication.
+
+### 12. Hands-on Progress
+Concepts: Introduced.
+Ubuntu practical: Pending.
+SQL execution: Pending.
+Azure deployment: Pending.
+
+Project: RetailOps 360 — Production-Style Azure Data Reliability and Revenue Analytics Platform.
