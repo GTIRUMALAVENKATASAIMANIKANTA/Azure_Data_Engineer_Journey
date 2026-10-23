@@ -23,8 +23,8 @@ The learning roadmap includes:
 
 | Module | Status |
 |---|---|
-| 01 — Data Engineering Fundamentals | In Progress |
-| 02 — SQL and Database Development | Planned |
+| 01 — Data Engineering Fundamentals | Completed |
+| 02 — SQL and Database Development | In progress |
 | 03 — Python for Data Engineering | Planned |
 | 04 — Azure Storage and ADLS Gen2 | Planned |
 | 05 — Azure Data Factory | Planned |
@@ -53,7 +53,35 @@ The learning roadmap includes:
 - Created a dedicated Azure Data Engineering workspace.
 - Created initial technical learning notes.
 
-Practical SQL exercises and cloud deployments are pending.
+Local SQL Server Day 1 Practical Completed.Azure Cloud deployment is pending.
+
+### Day 1 — SQL Server Hands-on Lab
+
+**Environment:** Ubuntu 24.04 LTS, Microsoft SQL Server 2025 Enterprise Developer Edition, sqlcmd.
+
+**Database:** RetailOps360  
+**Table:** dbo.customers
+
+**Completed Tasks:**
+- Installed and configured Microsoft SQL Server 2025.
+- Connected to SQL Server using sqlcmd.
+- Created and verified the RetailOps360 database.
+- Created the dbo.customers table.
+- Practiced single-row and multi-row INSERT statements.
+- Executed SELECT queries to retrieve customer records.
+- Troubleshot invalid column name errors (Msg 207).
+- Tested duplicate primary key rejection (Msg 2627).
+- Verified stored records using COUNT(*).
+
+**Validation Results:**
+- Total customer records: 4
+- Primary key duplicate test: Rejected as expected
+- Existing customer records: Preserved
+
+**Skills Practiced:**
+SQL DDL, DML, database schemas, primary keys, data integrity, troubleshooting, and basic validation.
+
+**Scope:** Local SQL Server learning lab. Azure cloud deployment is planned for future modules.
 
 ## Flagship Project — RetailOps 360
 

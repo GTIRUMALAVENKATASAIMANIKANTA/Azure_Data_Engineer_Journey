@@ -111,3 +111,912 @@ SQL execution: Pending.
 Azure deployment: Pending.
 
 Project: RetailOps 360 — Production-Style Azure Data Reliability and Revenue Analytics Platform.
+
+## SQL Server 2025 Installation and Configuration on Ubuntu
+
+### 1. What is Microsoft SQL Server?
+
+**Definition:** Microsoft SQL Server is a relational database management system (RDBMS) developed by Microsoft. It stores, manages, retrieves, and processes structured data using SQL and T-SQL.
+
+**Simple Explanation:** SQL Server is a database engine used to store and manage business information such as customers, orders, products, payments, and transactions.
+
+**Real-World Use:** Data Engineers use SQL Server to extract source data, write analytical queries, validate records, perform transformations, and integrate data with cloud platforms.
+
+### 2. Our Learning Environment
+
+- Operating System: Ubuntu 24.04.5 LTS
+- Processor Architecture: x86_64
+- CPU: 4 available cores
+- RAM: 7.6 GiB
+- Free Disk Space Before Installation: Approximately 178 GB
+- Filesystem: ext4
+- Database Engine: Microsoft SQL Server 2025 (17.x)
+- Installed Package Version: 17.0.5015.4-1
+- Project Directory: ~/Azure_Data_Engineer_Journey
+
+**Why SQL Server?**
+
+Our goal is to gain practical experience with the Microsoft SQL Server database engine and later integrate database sources with Azure Data Factory and other Azure data services.
+
+### 3. Step 1 — Check System Requirements
+
+**Commands:**
+
+```bash
+lsb_release -ds
+uname -m
+free -h
+df -h ~
+nproc
+findmnt -no FSTYPE /
+```
+
+**Explanation:**
+
+- `lsb_release -ds`: Displays the Ubuntu version.
+- `uname -m`: Displays CPU architecture.
+- `free -h`: Displays memory usage.
+- `df -h ~`: Displays available disk space.
+- `nproc`: Displays available CPU processing units.
+- `findmnt -no FSTYPE /`: Displays the root filesystem type.
+
+**Why:** Verify hardware and operating system compatibility before installing database software.
+
+### 4. Step 2 — Install Required Utilities
+
+**Commands:**
+
+```bash
+sudo apt update
+sudo apt install -y curl ca-certificates
+```
+
+**Explanation:**
+
+- `sudo`: Runs commands with administrator privileges.
+- `apt update`: Updates software package information.
+- `apt install`: Installs specified packages.
+- `-y`: Automatically accepts installation confirmation.
+- `curl`: Downloads files and information from URLs.
+- `ca-certificates`: Provides trusted certificate authorities for HTTPS verification.
+
+**Verification:**
+
+```bash
+curl --version
+```
+
+**Actual Result:** curl 8.5.0 was available.
+
+### 5. Step 3 — Configure Microsoft Signing Key
+
+**Command:**
+
+```bash
+curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | sudo gpg --batch --yes --dearmor -o /usr/share/keyrings/microsoft-prod.gpg
+```
+
+**Meaning:** Downloads Microsoft's public repository signing key and saves it in a format usable by APT.
+
+**Important Options:**
+
+- `-f`: Fail on HTTP errors.
+- `-s`: Silent mode.
+- `-S`: Show errors even in silent mode.
+- `-L`: Follow redirects.
+- `|`: Pass command output to another command.
+- `gpg --dearmor`: Convert an ASCII-armored key into binary form.
+- `-o`: Specify the output file.
+
+**Verification:**
+
+```bash
+ls -lh /usr/share/keyrings/microsoft-prod.gpg
+```
+
+**Actual Result:** The signing key file was created.
+
+**Security Note:** APT uses trusted repository keys to validate package signatures. The key should come from an official trusted source.
+
+### 6. Step 4 — Add the Official SQL Server Repository
+
+**Command:**
+
+```bash
+curl -fsSL https://packages.microsoft.com/config/ubuntu/24.04/mssql-server-2025.list | sudo tee /etc/apt/sources.list.d/mssql-server-2025.list
+```
+
+**Meaning:** Adds the official Microsoft SQL Server 2025 package repository for Ubuntu 24.04.
+
+**Verification:**
+
+```bash
+cat /etc/apt/sources.list.d/mssql-server-2025.list
+```
+
+**Actual Repository:**
+
+```text
+deb [arch=amd64,arm64,armhf signed-by=/usr/share/keyrings/microsoft-prod.gpg] https://packages.microsoft.com/ubuntu/24.04/mssql-server-2025 noble main
+```
+
+**Important Concepts:**
+
+- Repository: A software package source.
+- `signed-by`: Specifies the keyring for package signature verification.
+- `noble`: Ubuntu 24.04 codename.
+- `main`: Repository component.
+
+### 7. Step 5 — Verify SQL Server Package Availability
+
+**Commands:**
+
+```bash
+sudo apt update
+apt-cache policy mssql-server
+```
+
+**Explanation:**
+
+- `apt update`: Refreshes package metadata from configured repositories.
+- `apt-cache policy`: Shows package versions, installation status, and candidate version.
+
+**Actual Results:**
+
+- Installed: (none), before installation.
+- Candidate: 17.0.5015.4-1
+- Repository: Official Microsoft SQL Server 2025 repository.
+
+**Real-World Use:** Engineers verify available software versions and trusted package sources before installing infrastructure components.
+
+### 8. Step 6 — Install Microsoft SQL Server
+
+**Command:**
+
+```bash
+sudo apt install -y mssql-server
+```
+
+**Meaning:** Installs the SQL Server database engine on Ubuntu.
+
+**Actual Result:** Microsoft SQL Server package 17.0.5015.4-1 installed successfully.
+
+**Important:** Package installation alone does not complete initial database configuration.
+
+### 9. Step 7 — Initial SQL Server Configuration
+
+**Command:**
+
+```bash
+sudo /opt/mssql/bin/mssql-conf setup
+```
+
+**Purpose:**
+
+- Select a SQL Server edition.
+- Accept licensing terms.
+- Set the SQL Server administrator (`sa`) password.
+- Initialize the database engine.
+- Start the SQL Server service.
+
+**Edition Note:** Developer editions are intended for development and testing, not production workloads.
+
+**Security Best Practices:**
+
+- Use a strong, unique administrator password.
+- Never store passwords in `notes.txt` or GitHub.
+- Avoid using the `sa` account for ordinary application connections.
+- Use dedicated least-privilege accounts in real projects.
+
+### 10. Step 8 — Verify SQL Server Service
+
+**Command:**
+
+```bash
+systemctl status mssql-server --no-pager
+```
+
+**Command Breakdown:**
+
+- `systemctl`: Controls and inspects Linux services.
+- `status`: Displays service state and process information.
+- `mssql-server`: Microsoft SQL Server system service.
+- `--no-pager`: Displays output directly without opening a pager.
+
+**Actual Result:**
+
+```text
+Active: active (running)
+```
+
+**Meaning:** The SQL Server database engine started successfully.
+
+### 11. Step 9 — Configure SQL Server Memory Limit
+
+**Why:** Our laptop has approximately 8 GB RAM. SQL Server should not consume excessive system memory while we use Ubuntu, Python, browsers, and development tools.
+
+**Chosen Local Learning Limit:** 3072 MB (3 GiB).
+
+**Command:**
+
+```bash
+sudo /opt/mssql/bin/mssql-conf set memory.memorylimitmb 3072
+```
+
+**Explanation:**
+
+- `mssql-conf`: SQL Server configuration utility for Linux.
+- `set`: Sets a configuration value.
+- `memory.memorylimitmb`: SQL Server process memory limit setting.
+- `3072`: Memory limit in megabytes.
+
+**Important:** This is a local development configuration. Production database memory settings depend on workload, hardware, and performance requirements.
+
+### 12. Memory Configuration Troubleshooting
+
+**Message Encountered:**
+
+```text
+Locale en_IN not supported. Using en_US.
+```
+
+**Meaning:** The configuration utility used the supported `en_US` locale instead of `en_IN`. This was not a fatal installation error.
+
+**Another Message Encountered:**
+
+```text
+No setting for the given option found in '/var/opt/mssql/mssql.conf'.
+```
+
+**Meaning:** The requested setting was not found in the configuration file at the time it was queried.
+
+**Troubleshooting Steps:**
+
+1. Run the memory configuration command.
+2. Read the configuration utility output.
+3. Inspect the configuration file.
+4. Restart the service after confirming the setting.
+5. Verify service health after restart.
+
+**Verification Command:**
+
+```bash
+sudo grep -A 1 '^\[memory\]' /var/opt/mssql/mssql.conf
+```
+
+**Actual Verified Configuration:**
+
+```ini
+[memory]
+memorylimitmb = 3072
+```
+
+**Result:** The memory configuration was saved successfully.
+
+### 13. Step 10 — Apply Memory Configuration
+
+**Restart Command:**
+
+```bash
+sudo systemctl restart mssql-server
+```
+
+**Service Verification:**
+
+```bash
+systemctl is-active mssql-server
+```
+
+**Expected Output:**
+
+```text
+active
+```
+
+**Configuration Verification:**
+
+```bash
+sudo grep -A 1 '^\[memory\]' /var/opt/mssql/mssql.conf
+```
+
+**Expected Configuration:**
+
+```ini
+[memory]
+memorylimitmb = 3072
+```
+
+**Current Practical Status:** Memory limit saved successfully. Restart and post-restart health verification are pending confirmation.
+
+### 14. Real Company Use Cases
+
+Database engineers and platform administrators:
+
+1. Check operating system and hardware compatibility.
+2. Configure approved software repositories.
+3. Install supported database versions.
+4. Configure database services and memory limits.
+5. Apply database security best practices.
+6. Verify service health and logs.
+7. Troubleshoot configuration failures.
+8. Document installation and configuration procedures.
+
+In production environments, changes and service restarts typically follow approval, backup, monitoring, and maintenance procedures.
+
+### 15. Interview Questions and Answers
+
+**Q1. What is SQL Server?**
+
+A: SQL Server is a relational database management system developed by Microsoft.
+
+**Q2. What is `mssql-conf`?**
+
+A: A command-line utility used to configure SQL Server on Linux.
+
+**Q3. Why do we configure SQL Server memory limits?**
+
+A: To control database memory consumption and leave adequate resources for the operating system and other services.
+
+**Q4. What does `systemctl` do?**
+
+A: It manages and inspects system services on Linux.
+
+**Q5. How do you verify SQL Server is running?**
+
+A: Use `systemctl status mssql-server --no-pager` or `systemctl is-active mssql-server`.
+
+**Q6. What is the difference between installing and configuring SQL Server?**
+
+A: Installation places the required software on the system. Configuration initializes the database engine and applies required settings.
+
+**Q7. Why use package signing keys?**
+
+A: To allow the package manager to verify the authenticity and integrity of repository metadata and packages.
+
+**Q8. Why should passwords not be pushed to GitHub?**
+
+A: Exposed credentials can allow unauthorized access to systems and data.
+
+### 16. Current Learning Progress
+
+**Completed:**
+- Ubuntu environment verification.
+- SQL Server compatibility checks.
+- Required utility installation.
+- Microsoft signing key setup.
+- Microsoft SQL Server repository configuration.
+- SQL Server 2025 package installation.
+- SQL Server initial configuration.
+- Verification that SQL Server started successfully.
+- Configuration of a 3072 MB SQL Server memory limit.
+- Configuration-file verification.
+- Basic troubleshooting of locale and memory-setting messages.
+
+**Pending:**
+- Restart SQL Server to apply the memory setting.
+- Verify service health after restart.
+- Install SQL command-line tools.
+- Connect to the database engine.
+- Create the RetailOps360 practice database.
+- Execute the first SQL queries.
+
+### SQL Server Command-Line Tools — sqlcmd
+
+**Definition:** `sqlcmd` is a Microsoft command-line utility used to connect to SQL Server and execute T-SQL statements.
+
+**Why:** It allows engineers to run database queries, check connectivity, execute SQL scripts, and automate certain database tasks.
+
+**Real-World Use:** Database troubleshooting, deployment scripts, SQL validation, and operational checks.
+
+**Tools Repository Configuration:**
+
+```bash
+curl -fsSL https://packages.microsoft.com/config/ubuntu/24.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
+```
+
+**Verification:**
+
+```bash
+cat /etc/apt/sources.list.d/mssql-release.list
+```
+
+**Important:** Installing the SQL Server engine and installing SQL client tools are separate steps.
+
+### SQL Server Command-Line Tools Installation
+
+**Definition:** `sqlcmd` is a command-line utility used to connect to Microsoft SQL Server and execute T-SQL queries.
+
+**Installation Commands:**
+
+```bash
+sudo apt update
+sudo apt install mssql-tools18 unixodbc-dev
+```
+
+**Packages:**
+- `mssql-tools18`: Installs `sqlcmd` and `bcp`.
+- `unixodbc-dev`: Provides ODBC development libraries and headers.
+
+**Verification:**
+
+```bash
+ls -l /opt/mssql-tools18/bin/sqlcmd
+```
+
+**Real-World Use:** SQL queries, database connectivity tests, script execution, and production troubleshooting.
+
+**Important:** SQL Server database engine and SQL client utilities are separate software components. Never expose SQL Server administrator credentials in scripts, notes, or GitHub repositories.
+
+### SQL Server sqlcmd — PATH Configuration
+
+**Definition:** PATH is a Linux environment variable containing directories where the shell searches for executable commands.
+
+**Purpose:** Run `sqlcmd` directly without specifying `/opt/mssql-tools18/bin/sqlcmd`.
+
+**Commands:**
+
+```bash
+echo 'export PATH="$PATH:/opt/mssql-tools18/bin"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+**Verification:**
+
+```bash
+command -v sqlcmd
+```
+
+**Expected Output:**
+
+```text
+/opt/mssql-tools18/bin/sqlcmd
+```
+
+**Real-World Use:** Engineers configure PATH for database utilities, command-line tools, cloud CLIs, and automation environments.
+
+**Caution:** Only add trusted executable directories to PATH. Avoid accidentally overwriting existing PATH values.
+
+### SQL Server — First Connection and SQL Query
+
+**Definition:** `sqlcmd` is a command-line utility used to connect to Microsoft SQL Server and execute Transact-SQL (T-SQL) queries.
+
+**Connection syntax:**
+
+```bash
+sqlcmd -S localhost -U sa -Nm -C
+```
+
+**Options:**
+- `-S`: Specifies the SQL Server hostname.
+- `-U`: Specifies the SQL Server login.
+- `-Nm`: Requires connection encryption.
+- `-C`: Trusts the server certificate without validating it. Use only in controlled local development environments.
+
+**Authentication:** Enter the administrator password interactively. Never expose passwords in source code or GitHub.
+
+**First SQL query:**
+
+```sql
+SELECT @@VERSION;
+GO
+```
+
+**Explanation:**
+- `SELECT`: Retrieves data or evaluates an expression.
+- `@@VERSION`: Returns database engine version and environment information.
+- `GO`: SQLCMD batch separator that executes the preceding SQL batch.
+
+**Exit command:** `EXIT`
+
+**Real-world use:** Database engineers verify connectivity, server version, permissions, and query execution before beginning database work.
+
+**Security:** Use dedicated least-privilege database accounts for applications and automated pipelines instead of the `sa` administrator login.
+
+**Practical status:** Connection and first query pending verification.
+
+### SQL Fundamentals — CREATE DATABASE
+
+**Definition:** `CREATE DATABASE` is a T-SQL statement used to create a new database in Microsoft SQL Server.
+
+**Syntax:**
+
+```sql
+CREATE DATABASE database_name;
+GO
+```
+
+**Real project example:**
+
+```sql
+CREATE DATABASE RetailOps360;
+GO
+```
+
+**Command explanation:**
+- `CREATE`: Creates a database object.
+- `DATABASE`: Specifies that the object is a database.
+- `RetailOps360`: Name of the database.
+- `;`: SQL statement terminator.
+- `GO`: SQLCMD batch separator.
+
+**Verify the database:**
+
+```sql
+SELECT name
+FROM sys.databases
+WHERE name = 'RetailOps360';
+GO
+```
+
+**Real-world use:** Creating development and analytics databases to organize business data and related database objects.
+
+**Important:** Database creation requires appropriate permissions. Production database provisioning should follow approved processes.
+
+**Interview Q&A**
+
+Q: What does CREATE DATABASE do?
+
+A: It creates a new database in SQL Server.
+
+Q: Is GO a T-SQL command?
+
+A: No. GO is a batch separator recognized by SQL client utilities such as sqlcmd.
+
+Q: What is sys.databases?
+
+A: A SQL Server system catalog view containing metadata about databases.
+
+**Hands-on status:** RetailOps360 database creation pending verification.
+
+### SQL Fundamentals — USE DATABASE and DB_NAME()
+
+**Definition:** The `USE` statement changes the current database context of a SQL Server session.
+
+**Syntax:**
+
+```sql
+USE database_name;
+GO
+```
+
+**Hands-on Example:**
+
+```sql
+USE RetailOps360;
+GO
+
+SELECT DB_NAME() AS current_database;
+GO
+```
+
+**Command Explanation:**
+
+- `USE`: Selects the current database.
+- `RetailOps360`: Existing database name.
+- `GO`: SQLCMD batch separator.
+- `SELECT`: Retrieves a result.
+- `DB_NAME()`: Returns the current database name.
+- `AS`: Assigns a column alias.
+
+**Why:** Ensure queries execute against the intended database.
+
+**Real DevOps/Data Engineering Use:** Engineers verify the target database before executing SQL scripts, transformations, or troubleshooting queries.
+
+**Difference:**
+- `CREATE DATABASE`: Creates a database.
+- `USE`: Changes the session's database context.
+
+**Caution:** Always confirm the correct environment and database before modifying production data.
+
+**Interview Q&A**
+
+Q: Does USE create a database?
+
+A: No. It selects an existing database.
+
+Q: What does DB_NAME() return without an argument?
+
+A: The current database name.
+
+**Hands-on Progress:**
+- RetailOps360 database created and verified.
+- Selecting the database using USE — current practical step.
+
+## SQL Fundamentals — INSERT INTO
+
+### 1. Definition
+`INSERT INTO` is a SQL Data Manipulation Language (DML) statement used to add new records to an existing table.
+
+### 2. Meaning
+INSERT INTO stores new data in a relational database table.
+
+### 3. Syntax
+
+```sql
+INSERT INTO table_name (column1, column2)
+VALUES (value1, value2);
+```
+
+### 4. Important SQL Keywords
+- `INSERT INTO`: Specifies the destination table.
+- Column list: Identifies target columns.
+- `VALUES`: Provides the new record values.
+- `GO`: Executes the SQL batch in sqlcmd.
+
+### 5. Why Use INSERT?
+To store new customers, products, orders, and transactions in database tables.
+
+### 6. Real Data Engineering Use
+Data engineers may insert validated records into staging, reference, or analytical tables. Production pipelines also use controlled bulk loading and other ingestion approaches.
+
+### 7. Example
+
+```sql
+INSERT INTO dbo.customers
+    (customer_id, customer_name, city)
+VALUES
+    (101, N'Ravi', N'Hyderabad');
+GO
+```
+
+### 8. Difference and Cautions
+- `CREATE TABLE`: Creates a table structure.
+- `INSERT INTO`: Adds records to an existing table.
+- `SELECT`: Retrieves data from a table.
+- Duplicate primary key values are rejected when a primary key constraint exists.
+- Required NOT NULL columns must contain valid values unless defaults or generated values apply.
+- `N'...'` represents a Unicode string literal in SQL Server.
+- Repeating the same INSERT may create duplicates or a primary key violation.
+
+### 9. Interview Q&A
+
+**Q1: What is INSERT INTO?**
+A: A DML statement that adds new rows to a table.
+
+**Q2: Can INSERT insert multiple rows?**
+A: Yes, a single INSERT statement can insert multiple rows.
+
+**Q3: What happens if a duplicate primary key is inserted?**
+A: SQL Server rejects the operation when the primary key constraint is enforced.
+
+**Q4: What is the difference between DDL and DML?**
+A: DDL defines database structures, while DML operates on data inside those structures.
+
+### Practical
+Database: RetailOps360
+Table: dbo.customers
+Task: Insert and verify the first customer record.
+
+Status: Pending hands-on verification.
+
+### SQL Troubleshooting — Invalid Column Name
+
+**Error:** Msg 207 — Invalid column name 'customers_id'.
+
+**Cause:** The query referenced a column that does not exist in the table.
+
+**Resolution:** Inspected the table schema using `INFORMATION_SCHEMA.COLUMNS` and identified the correct column name, `customer_id`.
+
+**Correct Query:**
+
+```sql
+SELECT *
+FROM dbo.customers
+WHERE customer_id = 101;
+GO
+```
+
+**Real-World Lesson:** When a SQL query fails with an invalid column error, inspect the actual table schema and correct the column reference instead of modifying the database unnecessarily.
+
+## SQL Fundamentals — Multiple Row INSERT
+
+### 1. Definition
+A multi-row INSERT statement inserts multiple records into a database table using one SQL statement.
+
+### 2. Meaning
+Instead of inserting each record individually, multiple rows can be added together.
+
+### 3. Syntax
+
+```sql
+INSERT INTO table_name (column1, column2)
+VALUES
+    (value1, value2),
+    (value3, value4);
+```
+
+### 4. Important Keywords
+- INSERT INTO: Specifies the target table.
+- VALUES: Defines the data to insert.
+- Comma: Separates multiple rows.
+- GO: Executes the SQL batch in sqlcmd.
+
+### 5. Why Use It?
+To efficiently add multiple records with fewer SQL statements.
+
+### 6. Real Data Engineering Use
+Data engineers load validated records into staging, reference, and analytical tables. Large production datasets usually require bulk loading or automated ingestion pipelines.
+
+### 7. Example
+
+```sql
+INSERT INTO dbo.customers
+    (customer_id, customer_name, city)
+VALUES
+    (102, N'SAI', N'VIJAYAWADA'),
+    (103, N'KIRAN', N'GUNTUR'),
+    (104, N'PRIYA', N'HYDERABAD');
+GO
+```
+
+### 8. Differences and Cautions
+- Single-row INSERT adds one record.
+- Multi-row INSERT adds multiple records using one statement.
+- Primary key values must remain unique.
+- SQL Server supports up to 1,000 rows in a direct INSERT ... VALUES statement.
+- In production, use appropriate bulk-loading approaches for larger datasets.
+- Verify existing records before rerunning an INSERT to avoid duplicates or primary key errors.
+
+### 9. Interview Q&A
+
+Q: Can INSERT INTO insert multiple records?
+
+A: Yes. Multiple row-value expressions can be specified in one INSERT statement.
+
+Q: What happens if one inserted value violates a primary key constraint?
+
+A: SQL Server normally rejects the entire multi-row INSERT statement.
+
+Q: What is the difference between manual inserts and production ingestion?
+
+A: Manual INSERT statements are useful for small datasets and testing. Production pipelines typically use automated, monitored, and validated ingestion methods.
+
+### Hands-on Task
+Insert customer IDs 102, 103, and 104 into RetailOps360.dbo.customers and verify the inserted records.
+
+Status: Pending practical verification.
+
+## Day 1 — Step 21: Primary Key Constraint Practical
+
+### 1. Definition
+A Primary Key is a relational database constraint that uniquely identifies every row in a table and prohibits NULL key values.
+
+### 2. Simple Meaning
+Primary Key prevents two records from using the same key value.
+
+### 3. Syntax
+
+```sql
+CREATE TABLE dbo.customers (
+    customer_id INT NOT NULL PRIMARY KEY,
+    customer_name NVARCHAR(100) NOT NULL,
+    city NVARCHAR(100) NULL
+);
+```
+
+### 4. Key Rules
+- Primary Key values must be unique.
+- Primary Key values cannot be NULL.
+- A table has one primary key constraint.
+- A primary key may contain multiple columns (composite primary key).
+
+### 5. Why Use It?
+To protect database integrity and reliably identify records.
+
+### 6. Real Data Engineering Use
+Data engineers validate customer and order identifiers during source ingestion and transformation. Relational database primary key constraints provide an additional layer of protection.
+
+### 7. Duplicate Key Test
+
+```sql
+INSERT INTO dbo.customers
+    (customer_id, customer_name, city)
+VALUES
+    (102, N'TEST', N'HYDERABAD');
+GO
+```
+
+Expected: Primary Key violation, because customer ID 102 already exists.
+
+### 8. Differences and Cautions
+- PRIMARY KEY ensures uniqueness and non-NULL key values.
+- NOT NULL only prevents NULL values.
+- UNIQUE also enforces uniqueness, but NULL handling differs.
+- Raw CSV and JSON files do not enforce SQL Server primary keys.
+- Duplicate key errors should be investigated rather than bypassed.
+- Never disable production constraints simply to force invalid data into a table.
+
+### 9. Interview Q&A
+
+**Q1. Can a primary key contain duplicate values?**
+A: No.
+
+**Q2. Can a primary key contain NULL values?**
+A: No.
+
+**Q3. Can a table have a composite primary key?**
+A: Yes, a primary key can include multiple columns.
+
+**Q4. What is SQL Server error 2627?**
+A: It commonly indicates a violation of a primary key or unique constraint.
+
+**Q5. What should a Data Engineer do when duplicate customer IDs arrive?**
+A: Investigate source data and business rules, identify the correct record, and apply approved validation or deduplication logic.
+
+### Practical Status
+Duplicate primary key test pending.
+
+### Day 1 — Step 21: Primary Key Practical Results
+
+**Error 1: Msg 207 — Invalid Column Name**
+- Cause: Typing mistake (`custmoer_id` instead of `customer_id`).
+- Resolution: Corrected the column name.
+
+**Error 2: Msg 2627 — Primary Key Violation**
+- Attempted to insert another customer with `customer_id = 102`.
+- SQL Server rejected the duplicate key.
+- Verified that the existing customer `SAI — VIJAYAWADA` remained unchanged.
+
+**Real-World Learning:**
+Primary Key constraints protect relational data integrity. When duplicate key errors occur, investigate source data and business rules instead of disabling database constraints.
+
+**Practical Status: Completed and verified.**
+
+## Day 1 — Final SQL Practical: COUNT(*) and Data Validation
+
+### Definition
+COUNT(*) is a SQL aggregate function that counts all rows returned by a query.
+
+### Syntax
+```sql
+SELECT COUNT(*) FROM table_name;
+```
+
+### Practical
+```sql
+SELECT COUNT(*) AS total_customers
+FROM dbo.customers;
+GO
+```
+
+**Actual Result:** 4 customer records.
+
+### Real-World Use
+Data engineers verify row counts after loading data to identify unexpected missing or extra records.
+
+Matching row counts alone does not guarantee data quality.
+
+### Final Customers Table
+
+| Customer ID | Name | City |
+|---|---|---|
+| 101 | RAVI | MANGALAGIRI |
+| 102 | SAI | VIJAYAWADA |
+| 103 | MANI | GUNTUR |
+| 104 | SUVARNA | GANNAVARAM |
+
+### Interview Q&A
+
+**Q1: What is COUNT(*)?**
+
+A: An aggregate function that counts rows, including rows containing NULL values.
+
+**Q2: What is the difference between COUNT(*) and COUNT(column_name)?**
+
+A: COUNT(*) counts all rows. COUNT(column_name) counts rows where that column is not NULL.
+
+**Q3: Why validate row counts after data ingestion?**
+
+A: To detect potential missing or extra records and verify whether the load meets expected requirements.
+
+### Day 1 Hands-on Status
+Completed and verified:
+- SQL Server setup and connectivity
+- RetailOps360 database creation
+- dbo.customers table creation
+- INSERT and SELECT operations
+- Invalid column name troubleshooting
+- Primary key violation testing
+- COUNT(*) verification: 4 records
+
+Cloud deployment: Not performed.
