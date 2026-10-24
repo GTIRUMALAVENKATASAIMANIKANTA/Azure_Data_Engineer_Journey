@@ -83,6 +83,44 @@ SQL DDL, DML, database schemas, primary keys, data integrity, troubleshooting, a
 
 **Scope:** Local SQL Server learning lab. Azure cloud deployment is planned for future modules.
 
+## Module 02 — SQL and Database Development
+
+### Day 2 — SQL Querying and Data Quality (Completed)
+
+**Environment:** SQL Server 2025 on Ubuntu 24.04, using sqlcmd.
+
+**Database:** RetailOps360
+**Table:** dbo.customers
+
+**SQL Skills Practiced:**
+- SELECT, column aliases, and WHERE filtering
+- Comparison operators and AND, OR, NOT
+- ORDER BY with ascending, descending, and multiple-column sorting
+- DISTINCT and COUNT(DISTINCT)
+- IS NULL, IS NOT NULL, and SQL three-valued logic
+- COUNT(*), COUNT(column), LEN(), and DATALENGTH()
+- Targeted UPDATE statements with WHERE
+- SQL syntax troubleshooting and data validation
+
+**Verified Lab Results:**
+- Total customer records: 8
+- Non-NULL city records: 7
+- Unique non-NULL city values: 6
+- Customer 107 (SUNNY): Empty city string
+- Customer 108 (AKHIL): Actual SQL NULL
+- Final data quality query: Identified both incomplete city records
+
+**Engineering Lessons:**
+- NULL and empty strings are different.
+- Non-NULL data is not necessarily valid business data.
+- Empty strings can affect DISTINCT and COUNT results.
+- WHERE clauses are essential for targeted updates.
+- SQL query results must be validated against business requirements.
+- Whitespace-only values require additional validation.
+
+**Scope:** Completed and verified in the local SQL Server learning lab.
+Azure implementation and advanced SQL topics remain in progress.
+
 ## Flagship Project — RetailOps 360
 
 ### Production-Style Azure Data Reliability and Revenue Analytics Platform

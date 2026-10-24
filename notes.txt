@@ -1020,3 +1020,988 @@ Completed and verified:
 - COUNT(*) verification: 4 records
 
 Cloud deployment: Not performed.
+
+# AZURE DATA ENGINEERING — DAY 02
+## Module 02: SQL and Database Development
+### Topic 01: SQL SELECT Statement
+
+### 1. Definition
+The SELECT statement retrieves data from one or more database tables or queryable sources.
+
+### 2. Simple Explanation
+SELECT is used to retrieve the required information from a database without modifying stored records.
+
+### 3. Syntax
+
+```sql
+SELECT column1, column2
+FROM schema_name.table_name;
+```
+
+### 4. Important Keywords and Options
+- SELECT: Specifies the values or columns returned.
+- FROM: Identifies the data source.
+- *: Selects all columns from a source.
+- AS: Assigns a temporary output column alias.
+- dbo: Common SQL Server database schema.
+- GO: SQLCMD batch separator.
+
+### 5. Why SELECT Is Used
+To retrieve customer, order, payment, sales, and other business data for analytics, validation, and reporting.
+
+### 6. Real Data Engineering Use
+Data engineers use SELECT to:
+- Inspect source tables.
+- Validate ingestion results.
+- Retrieve required business fields.
+- Compare source and target records.
+- Investigate missing or incorrect data.
+- Prepare data for transformation.
+
+### 7. Hands-on Examples
+
+Retrieve all columns:
+
+```sql
+SELECT *
+FROM dbo.customers;
+GO
+```
+
+Retrieve selected columns:
+
+```sql
+SELECT customer_name, city
+FROM dbo.customers;
+GO
+```
+
+Use column aliases:
+
+```sql
+SELECT
+    customer_name AS Customer,
+    city AS Customer_City
+FROM dbo.customers;
+GO
+```
+
+### 8. Internal Working
+1. SQL Server parses the SQL statement.
+2. The query is validated and bound to database objects.
+3. The optimizer chooses an execution plan.
+4. The execution engine retrieves the required data.
+5. The selected columns are returned to the client.
+
+Actual processing depends on the execution plan, indexes, statistics, and query structure.
+
+### 9. Differences and Cautions
+- SELECT * retrieves all available columns.
+- Selecting specific columns retrieves only the required columns.
+- SELECT does not modify stored records.
+- Column aliases do not rename actual table columns.
+- Without ORDER BY, SQL row order is not guaranteed.
+- Production pipelines should avoid retrieving unnecessary or sensitive information.
+
+### 10. Interview Questions and Answers
+
+Q1: What is SELECT in SQL?
+A: A statement used to retrieve information from database tables or other queryable sources.
+
+Q2: What is the difference between SELECT * and SELECT column_name?
+A: SELECT * retrieves all columns, while explicit column selection returns only specified columns.
+
+Q3: Does SELECT modify data?
+A: An ordinary SELECT query reads data; it does not modify stored table rows.
+
+Q4: What is a column alias?
+A: A temporary output name assigned to a result column, commonly using AS.
+
+Q5: Is row ordering guaranteed without ORDER BY?
+A: No. SQL results have no guaranteed order without an explicit ORDER BY.
+
+### Real Company Ticket
+DE-104 — Retrieve customer names and cities from RetailOps360.dbo.customers for a reporting requirement.
+
+### Practical Status
+Pending verification.
+
+### SQL Fundamentals — Database Schema
+
+**Definition:** A schema is a logical namespace within a database used to organize database objects such as tables, views, and stored procedures.
+
+**Hierarchy:**
+Database → Schema → Table → Rows and Columns
+
+**Example:**
+- Database: RetailOps360
+- Schema: dbo
+- Table: customers
+- Fully qualified within the current database: dbo.customers
+
+**Why schemas are used:**
+1. Organize database objects logically.
+2. Separate business domains or application components.
+3. Manage permissions at the schema level.
+4. Allow identical table names in different schemas.
+5. Make object references more explicit.
+
+**Real-world examples:**
+- sales.orders
+- finance.payments
+- staging.raw_orders
+
+**Important distinction:**
+- Database schema: Namespace containing database objects.
+- Table schema: Structure of a table, including columns, data types, and constraints.
+
+**Verification query:**
+
+```sql
+SELECT TABLE_SCHEMA, TABLE_NAME
+FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_NAME = 'customers';
+GO
+```
+
+**Interview Q&A**
+
+Q1: What is a schema in SQL Server?
+A: A namespace within a database that groups objects such as tables and views.
+
+Q2: What is dbo?
+A: A built-in SQL Server schema commonly used for database objects. The abbreviation stands for database owner.
+
+Q3: Can two tables have the same name in one database?
+A: Yes, if they belong to different schemas, such as sales.orders and archive.orders.
+
+Q4: What is the difference between a database and a schema?
+A: A database contains schemas and other database objects, while a schema provides a namespace for organizing certain objects within that database.
+
+# AZURE DATA ENGINEERING — DAY 02
+## Topic 02: SQL WHERE Clause
+
+### 1. Definition
+The WHERE clause filters records based on specified conditions. Only rows satisfying the condition are included in the result.
+
+### 2. Simple Meaning
+WHERE is used to retrieve specific records instead of all records.
+
+Example: Retrieve only customers belonging to Vijayawada.
+
+### 3. Syntax
+
+```sql
+SELECT column1, column2
+FROM table_name
+WHERE condition;
+```
+
+### 4. Comparison Operators
+
+| Operator | Meaning |
+|---|---|
+| = | Equal to |
+| <> | Not equal to |
+| > | Greater than |
+| < | Less than |
+| >= | Greater than or equal to |
+| <= | Less than or equal to |
+
+### 5. Why WHERE Is Used
+- Retrieve relevant business records.
+- Filter customer, order, or transaction information.
+- Validate specific source records.
+- Support analytics and troubleshooting.
+- Limit unnecessary results.
+
+### 6. Real Data Engineering Use
+A Data Engineer investigates customer records for a particular city, selects transactions for a reporting period, or identifies records matching quality rules.
+
+### 7. Hands-on Examples
+
+Filter by city:
+
+```sql
+SELECT customer_id, customer_name, city
+FROM dbo.customers
+WHERE city = N'VIJAYAWADA';
+GO
+```
+
+Filter by customer ID:
+
+```sql
+SELECT *
+FROM dbo.customers
+WHERE customer_id = 102;
+GO
+```
+
+Greater-than comparison:
+
+```sql
+SELECT *
+FROM dbo.customers
+WHERE customer_id > 102;
+GO
+```
+
+### 8. Internal Working
+SQL Server parses the query and chooses an execution plan. Depending on indexes and table statistics, it may scan data or use an index to locate matching records.
+
+WHERE expressions use SQL's three-valued logic: TRUE, FALSE, and UNKNOWN. Only rows where the condition evaluates to TRUE are returned.
+
+### 9. Differences and Cautions
+- SELECT determines output columns.
+- WHERE determines qualifying rows.
+- WHERE alone does not modify stored data in a SELECT query.
+- String comparison case sensitivity depends on collation.
+- Use IS NULL to check for NULL values, not = NULL.
+- Without ORDER BY, returned row order is not guaranteed.
+- Use parameterized SQL for values supplied by applications to reduce SQL injection risk.
+
+### 10. Interview Q&A
+
+Q1: What is WHERE in SQL?
+A: A clause that filters rows based on specified conditions.
+
+Q2: What is the difference between SELECT and WHERE?
+A: SELECT defines output expressions and columns, while WHERE restricts qualifying rows.
+
+Q3: Can WHERE use multiple conditions?
+A: Yes. Conditions can be combined using AND, OR, and NOT.
+
+Q4: Does WHERE always perform a full table scan?
+A: No. SQL Server may use an index or another execution strategy depending on the chosen query plan.
+
+Q5: How do we filter NULL values?
+A: Use IS NULL or IS NOT NULL.
+
+### 11. Real Company Ticket
+DE-105: Extract Vijayawada customer records from RetailOps360.dbo.customers.
+
+Expected record: customer_id 102, SAI, VIJAYAWADA.
+
+Practical Status: Pending execution and verification.
+
+## Day 2 — Topic 03: SQL Comparison Operators
+
+### 1. Definition
+Comparison operators compare expressions and evaluate conditions in SQL queries.
+
+### 2. Meaning
+They help retrieve records based on equality, inequality, or value ranges.
+
+### 3. Syntax
+
+```sql
+SELECT column_name
+FROM table_name
+WHERE column_name comparison_operator value;
+```
+
+### 4. Operators
+- `=` : Equal to
+- `<>` : Not equal to
+- `>` : Greater than
+- `<` : Less than
+- `>=` : Greater than or equal to
+- `<=` : Less than or equal to
+
+### 5. Why Use Them?
+To filter customers, orders, transactions, dates, prices, and other business records.
+
+### 6. Real Data Engineering Use
+- Identify orders above a specified value.
+- Retrieve records after a particular date.
+- Filter records with specific statuses.
+- Apply data validation conditions.
+- Support incremental loading and business reporting.
+
+### 7. SQL Server Examples
+
+```sql
+SELECT *
+FROM dbo.customers
+WHERE customer_id > 102;
+GO
+
+SELECT *
+FROM dbo.customers
+WHERE customer_id <> 102;
+GO
+
+SELECT *
+FROM dbo.customers
+WHERE customer_id >= 103;
+GO
+```
+
+### 8. Differences and Cautions
+- `>` excludes the comparison value.
+- `>=` includes the comparison value.
+- `<>` means not equal in standard SQL.
+- SQL comparisons involving NULL generally evaluate to UNKNOWN.
+- Use `IS NULL` and `IS NOT NULL` for NULL checks.
+- Row order is not guaranteed without ORDER BY.
+- Compare compatible data types to avoid conversion problems.
+
+### 9. Interview Q&A
+
+Q1: What is the difference between > and >=?
+A: > excludes the specified value, whereas >= includes it.
+
+Q2: What does <> mean?
+A: It means not equal to.
+
+Q3: Does WHERE column <> 100 return NULL values?
+A: No. NULL comparisons generally evaluate to UNKNOWN, which is not returned by WHERE.
+
+Q4: Does a comparison operator guarantee an index seek?
+A: No. SQL Server selects an execution plan based on indexes, statistics, query conditions, and estimated costs.
+
+### Practical
+Database: RetailOps360
+Table: dbo.customers
+
+Task: Retrieve customers whose customer_id is greater than 102.
+
+Expected IDs: 103 and 104.
+
+Status: Pending verification.
+
+# Day 02 — Topic 04: SQL Logical Operators
+
+### 1. Definition
+Logical operators combine or negate conditions in SQL queries.
+
+### 2. Operators
+- AND: All combined conditions must evaluate to TRUE.
+- OR: At least one condition must evaluate to TRUE.
+- NOT: Negates the logical result of a condition.
+
+### 3. Syntax
+
+```sql
+SELECT column_name
+FROM table_name
+WHERE condition1 AND condition2;
+```
+
+### 4. AND Example
+
+```sql
+SELECT *
+FROM dbo.customers
+WHERE customer_id > 101
+  AND city = N'GUNTUR';
+GO
+```
+
+Expected: Customer 103, MANI.
+
+### 5. OR Example
+
+```sql
+SELECT *
+FROM dbo.customers
+WHERE city = N'GUNTUR'
+   OR city = N'VIJAYAWADA';
+GO
+```
+
+Expected: Customers 102 and 103.
+
+### 6. NOT Example
+
+```sql
+SELECT *
+FROM dbo.customers
+WHERE NOT (city = N'GUNTUR');
+GO
+```
+
+Expected with current non-NULL sample data: Customers 101, 102, and 104.
+
+### 7. SQL Server Operator Precedence
+1. NOT
+2. AND
+3. OR
+
+Use parentheses to make complex business conditions explicit.
+
+### 8. Real Data Engineering Use
+- Customer segmentation
+- Filtering transactions by status and amount
+- Data quality validations
+- Selecting source records for transformations
+- Incremental ingestion rules
+
+### 9. Important Cautions
+- AND requires all conditions to be TRUE.
+- OR requires at least one condition to be TRUE.
+- SQL uses TRUE, FALSE, and UNKNOWN logic.
+- NULL comparisons generally produce UNKNOWN.
+- Use parentheses to avoid ambiguous conditions.
+- Filtering with SELECT does not modify stored records.
+
+### 10. Interview Q&A
+
+Q1: Difference between AND and OR?
+A: AND requires all conditions to be TRUE; OR requires at least one TRUE condition.
+
+Q2: What does NOT do?
+A: It negates the result of a condition.
+
+Q3: Which is evaluated first, AND or OR?
+A: AND has higher precedence in SQL Server.
+
+Q4: Why are parentheses important?
+A: They explicitly control how complex conditions are grouped.
+
+### Practical
+Ticket DE-107: Retrieve Guntur customers with customer_id greater than 101.
+
+Status: Pending practical verification.
+
+### SQL Logical Operators — Practical Learning
+
+**Scenario:** Filter customers from Guntur or Vijayawada whose customer ID is greater than 101.
+
+**Correct Query:**
+
+```sql
+SELECT *
+FROM dbo.customers
+WHERE (city = N'GUNTUR' OR city = N'VIJAYAWADA')
+  AND customer_id > 101;
+GO
+```
+
+**Expected Records:** Customer IDs 102 and 103.
+
+**Important Lessons:**
+- AND has higher precedence than OR.
+- Parentheses explicitly group conditions.
+- Incorrect text values may return incomplete results without SQL errors.
+- Always verify query output against business requirements.
+- A successful SQL execution does not guarantee correct business logic.
+
+**Real-World Use:** Customer segmentation, business reporting, filtering transactions, and data validation.
+
+# Day 02 — Topic 05: SQL ORDER BY
+
+### 1. Definition
+The ORDER BY clause sorts query results based on one or more columns or expressions.
+
+### 2. Simple Meaning
+ORDER BY is used to display database records in a required ascending or descending order.
+
+### 3. Syntax
+
+```sql
+SELECT column1, column2
+FROM table_name
+ORDER BY column_name ASC;
+```
+
+### 4. Options
+- ASC: Ascending order (default).
+- DESC: Descending order.
+- Multiple columns: Sort by the first expression, then use subsequent expressions to order tied values.
+
+### 5. Why Use ORDER BY?
+- Generate organized reports.
+- Display dates, amounts, or identifiers in a required order.
+- Support ranked reports and pagination.
+- Produce predictable presentation order.
+
+### 6. Real Data Engineering Use
+A reporting system may order transactions by payment date or present high-value orders first.
+
+### 7. SQL Examples
+
+Ascending order:
+
+```sql
+SELECT customer_id, customer_name, city
+FROM dbo.customers
+ORDER BY customer_id ASC;
+GO
+```
+
+Descending order:
+
+```sql
+SELECT customer_id, customer_name, city
+FROM dbo.customers
+ORDER BY customer_id DESC;
+GO
+```
+
+Multiple-column sorting:
+
+```sql
+SELECT customer_id, customer_name, city
+FROM dbo.customers
+ORDER BY city ASC, customer_id DESC;
+GO
+```
+
+### 8. Internals and Cautions
+- SQL Server may use a Sort operator or an existing suitable index order.
+- Large sorting operations can consume memory and processing resources.
+- ASC is the default ordering direction.
+- Without ORDER BY, row ordering is not guaranteed.
+- Sort results depend on the data types and collation.
+- If ordering values are tied, add another column to ensure deterministic ordering.
+- An identifier does not necessarily represent a creation timestamp.
+
+### 9. Interview Q&A
+
+Q1: What is ORDER BY?
+A: A SQL clause used to sort query results.
+
+Q2: What is the default sorting direction?
+A: ASC.
+
+Q3: What is the difference between ASC and DESC?
+A: ASC sorts ascending, while DESC sorts descending.
+
+Q4: Can ORDER BY use multiple columns?
+A: Yes.
+
+Q5: Is result order guaranteed without ORDER BY?
+A: No.
+
+### Practical
+Database: RetailOps360
+Table: dbo.customers
+Task: Sort customers by customer_id in descending order.
+
+Status: Pending verification.
+
+# Day 02 — Topic 06: SQL DISTINCT
+
+### 1. Definition
+DISTINCT is a SQL keyword used with SELECT to eliminate duplicate rows from the query result.
+
+### 2. Simple Meaning
+DISTINCT returns unique values or unique combinations of selected columns.
+
+### 3. Syntax
+
+```sql
+SELECT DISTINCT column_name
+FROM table_name;
+```
+
+### 4. Options and Examples
+
+**Single column DISTINCT:**
+
+```sql
+SELECT DISTINCT city
+FROM dbo.customers;
+GO
+```
+
+**Multiple-column DISTINCT:**
+
+```sql
+SELECT DISTINCT customer_name, city
+FROM dbo.customers;
+GO
+```
+
+**DISTINCT with ORDER BY:**
+
+```sql
+SELECT DISTINCT city
+FROM dbo.customers
+ORDER BY city ASC;
+GO
+```
+
+### 5. Why DISTINCT Is Used
+- Retrieve unique cities, categories, statuses, or business values.
+- Remove duplicate rows from a query result.
+- Prepare unique value lists for reporting.
+- Investigate repeated values.
+
+### 6. Real Data Engineering Use
+A marketing team requires a unique list of customer cities from customer master data.
+
+### 7. Internal Working
+SQL Server may eliminate duplicates using sorting, hashing, or an appropriate ordered input. The execution plan depends on indexes, statistics, and data volume.
+
+### 8. Differences and Cautions
+- SELECT returns matching rows, including duplicate values.
+- SELECT DISTINCT eliminates duplicate result rows.
+- DISTINCT applies to the entire selected column combination.
+- DISTINCT does not delete original table records.
+- NULL values are treated as duplicates for DISTINCT elimination.
+- DISTINCT can introduce performance overhead on large datasets.
+- DISTINCT should not be used to hide incorrect joins or unresolved data quality problems.
+- Use ORDER BY if a specific output order is required.
+
+### 9. Interview Questions
+
+Q1: What is DISTINCT in SQL?
+A: A keyword that removes duplicate rows from the SELECT result.
+
+Q2: Does DISTINCT delete duplicate records permanently?
+A: No. It only affects the query result.
+
+Q3: What happens when DISTINCT is used with multiple columns?
+A: The unique combination of all selected expressions is returned.
+
+Q4: What is the difference between DISTINCT and GROUP BY?
+A: DISTINCT removes duplicate result combinations. GROUP BY forms groups, commonly for aggregation. They can produce similar results in certain queries but have different intended uses.
+
+### 10. Practical
+
+Database: RetailOps360
+Table: dbo.customers
+
+Task: Retrieve unique customer cities.
+
+Expected: 5 unique cities from 6 customer records.
+
+Status: Pending verification.
+
+### SQL — COUNT(DISTINCT)
+
+**Definition:** COUNT(DISTINCT column_name) returns the number of unique non-NULL values in a column.
+
+**Syntax:**
+```sql
+SELECT COUNT(DISTINCT column_name)
+FROM table_name;
+```
+
+**Practical:**
+```sql
+SELECT COUNT(DISTINCT city) AS unique_cities
+FROM dbo.customers;
+GO
+```
+
+**Expected Result:** 5
+
+**Difference:**
+- `COUNT(*)` counts all rows.
+- `COUNT(city)` counts rows with non-NULL city values.
+- `COUNT(DISTINCT city)` counts unique non-NULL cities.
+
+**Real-world use:** Counting unique locations, product categories, transaction statuses, or customer segments.
+
+**Interview Q&A**
+
+Q: Does COUNT(DISTINCT city) count NULL?
+
+A: No. NULL values are excluded.
+
+Q: Does COUNT(DISTINCT) modify the original table?
+
+A: No. It only calculates an aggregate result.
+
+# Day 02 — Topic 07: SQL NULL Handling
+
+### 1. Definition
+NULL represents a missing, unknown, or inapplicable value in a SQL database.
+
+### 2. Simple Meaning
+NULL means a value is not available. It is different from zero, an empty string, or the text 'NULL'.
+
+### 3. Syntax
+
+Check missing values:
+
+```sql
+SELECT *
+FROM dbo.customers
+WHERE city IS NULL;
+GO
+```
+
+Check available values:
+
+```sql
+SELECT *
+FROM dbo.customers
+WHERE city IS NOT NULL;
+GO
+```
+
+### 4. Important SQL Operators
+- `IS NULL`: Finds records where a value is NULL.
+- `IS NOT NULL`: Finds records where a value is not NULL.
+- `NULL`: Represents a missing or unknown value.
+- `NOT NULL`: A table column constraint that prevents NULL values.
+
+### 5. Why NULL Handling Is Required
+- Identify missing customer information.
+- Validate source data.
+- Detect incomplete records.
+- Apply business data quality rules.
+- Prevent incorrect business calculations.
+
+### 6. Real Data Engineering Use
+A retail company receives customer records without city information. A data engineer identifies missing values, validates requirements, and routes confirmed invalid records for investigation.
+
+### 7. COUNT and NULL
+
+```sql
+SELECT
+    COUNT(*) AS total_customers,
+    COUNT(city) AS customers_with_city,
+    COUNT(DISTINCT city) AS unique_cities
+FROM dbo.customers;
+GO
+```
+
+- COUNT(*) counts all rows.
+- COUNT(city) counts rows with non-NULL city values.
+- COUNT(DISTINCT city) counts unique non-NULL city values.
+
+### 8. SQL Three-Valued Logic
+SQL conditions can evaluate to TRUE, FALSE, or UNKNOWN.
+
+Comparisons using =, <>, >, or < with NULL generally evaluate to UNKNOWN.
+
+Use IS NULL / IS NOT NULL instead of = NULL / <> NULL.
+
+### 9. Differences and Cautions
+- NULL is not the same as 0.
+- NULL is not the same as an empty string.
+- NULL is not the same as the literal text 'NULL'.
+- NULL values may affect aggregates and filter results.
+- Never replace missing data with arbitrary values without approved business rules.
+- A nullable column permits NULL; a NOT NULL column normally rejects it.
+
+### 10. Interview Q&A
+
+Q1: What is NULL in SQL?
+A: A marker representing missing, unknown, or inapplicable information.
+
+Q2: What is the difference between NULL and zero?
+A: Zero is a known numeric value; NULL indicates the absence of a known value.
+
+Q3: How do you retrieve NULL records?
+A: Use WHERE column_name IS NULL.
+
+Q4: Does COUNT(*) count rows containing NULL?
+A: Yes.
+
+Q5: Does COUNT(city) include NULL values?
+A: No.
+
+Q6: Why should WHERE city = NULL not be used?
+A: Ordinary comparisons with NULL generally evaluate to UNKNOWN rather than TRUE.
+
+### Practical
+Ticket DE-111: Identify customer records with missing city information in RetailOps360.dbo.customers.
+
+Status: Pending hands-on verification.
+
+### SQL Troubleshooting — Blank String vs NULL
+
+**Scenario:** Customer 107 (SUNNY) appeared to have a blank city, but `WHERE city IS NULL` returned zero records.
+
+**Learning:** A blank-looking value is not necessarily NULL.
+
+**Differences:**
+- NULL: Missing or unknown value.
+- N'': Empty Unicode string.
+- N'   ': Unicode string containing whitespace.
+
+**Diagnostic Query:**
+
+```sql
+SELECT
+    customer_id,
+    '[' + city + ']' AS city_visible,
+    LEN(city) AS character_length,
+    DATALENGTH(city) AS bytes_used
+FROM dbo.customers
+WHERE customer_id = 107;
+GO
+```
+
+**Important:**
+- LEN() does not count trailing spaces.
+- DATALENGTH() reports the number of bytes used.
+- IS NULL does not match empty strings or spaces.
+- Data engineers should validate NULL, empty strings, and whitespace-only values according to business rules.
+
+**Real-World Use:** Detect incomplete customer information during data ingestion and quality validation.
+
+### SQL String Functions — LEN() and DATALENGTH()
+
+**LEN()**
+
+Definition: Returns the number of characters in a string, excluding trailing spaces.
+
+Syntax:
+`LEN(column_name)`
+
+Example:
+`LEN(N'GUNTUR')` returns 6.
+
+**DATALENGTH()**
+
+Definition: Returns the number of bytes used by an expression.
+
+Syntax:
+`DATALENGTH(column_name)`
+
+Example:
+`DATALENGTH(N'GUNTUR')` returns 12 bytes for this NVARCHAR string.
+
+**String Concatenation (+)**
+
+Combines strings into a single result.
+
+Example:
+`N'[' + city + N']'`
+
+If city contains GUNTUR, the result is `[GUNTUR]`.
+
+**AS (Alias)**
+
+Provides a temporary name for an output column.
+
+Example:
+`LEN(city) AS city_length`
+
+**Real-World Use**
+
+Data Engineers use LEN() and DATALENGTH() to investigate missing-looking values, spaces, invalid strings, and source data quality issues.
+
+**Important Difference**
+
+- NULL is not the same as an empty string.
+- LEN() excludes trailing spaces.
+- DATALENGTH() measures bytes, including spaces.
+- In SQL Server, concatenating a NULL city with strings normally returns NULL.
+
+**SQL Practice**
+
+```sql
+SELECT
+    customer_name,
+    city,
+    LEN(city) AS city_length
+FROM dbo.customers
+WHERE customer_id = 107;
+GO
+```
+
+### Day 2 — Data Quality Investigation: Customer 107
+
+**Problem:** Customer SUNNY appeared to have a blank city.
+
+**Tests performed:**
+
+```sql
+SELECT *
+FROM dbo.customers
+WHERE city IS NULL;
+GO
+```
+
+Result: Zero matching records.
+
+```sql
+SELECT
+    LEN(city) AS character_length,
+    DATALENGTH(city) AS bytes_used
+FROM dbo.customers
+WHERE customer_id = 107;
+GO
+```
+
+**Actual results:**
+- LEN(city) = 0
+- DATALENGTH(city) = 0
+- city IS NULL = FALSE
+
+**Conclusion:** Customer 107 contains an empty city string rather than SQL NULL.
+
+**Real-world learning:** Missing-looking values can be represented as NULL, empty strings, or whitespace. Data engineers must investigate and validate these representations before applying business rules.
+
+**Practical Status:** Completed and verified.
+
+==================================================
+DAY 02 - FINAL SQL PRACTICAL SUMMARY
+==================================================
+
+Database: RetailOps360
+Table: dbo.customers
+
+TOPICS COMPLETED
+----------------
+1. SELECT and column aliases
+2. WHERE filtering
+3. Comparison operators
+4. AND, OR, NOT
+5. ORDER BY ASC and DESC
+6. Multiple-column sorting
+7. DISTINCT and COUNT(DISTINCT)
+8. IS NULL and IS NOT NULL
+9. LEN() and DATALENGTH()
+10. UPDATE with WHERE
+11. Data quality investigation
+
+FINAL DATA QUALITY RESULTS
+--------------------------
+Total customers: 8
+Non-NULL city records: 7
+Unique non-NULL city values: 6
+
+Customer 107 (SUNNY):
+- City contains an empty string.
+- LEN(city) = 0
+- DATALENGTH(city) = 0
+- IS NULL = FALSE
+
+Customer 108 (AKHIL):
+- City contains actual SQL NULL.
+- IS NULL = TRUE
+
+FINAL COMPANY TASK - DE-112
+---------------------------
+Requirement:
+Identify customers whose city is NULL or empty.
+
+SQL:
+
+SELECT
+    customer_id,
+    customer_name,
+    city
+FROM dbo.customers
+WHERE city IS NULL
+   OR DATALENGTH(city) = 0
+ORDER BY customer_id ASC;
+
+Verified Output:
+107 - SUNNY - Empty string
+108 - AKHIL - NULL
+
+PRODUCTION LESSONS
+------------------
+1. NULL and empty strings are different.
+2. COUNT(city) excludes NULL but includes empty strings.
+3. DISTINCT does not guarantee valid business values.
+4. WHERE clauses are essential for safe targeted updates.
+5. SQL errors require syntax and object-name validation.
+6. Query success does not guarantee data correctness.
+7. Whitespace-only strings require additional data quality checks.
+8. Never remove or replace source data without business rules.
+
+DAY 02 STATUS:
+SQL practicals completed and verified.
+==================================================
