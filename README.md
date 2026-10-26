@@ -121,6 +121,43 @@ SQL DDL, DML, database schemas, primary keys, data integrity, troubleshooting, a
 **Scope:** Completed and verified in the local SQL Server learning lab.
 Azure implementation and advanced SQL topics remain in progress.
 
+### Day 3 — SQL Aggregations and Sales Reporting
+
+**Environment:** Local SQL Server 2025, RetailOps360 database.
+
+**Completed Hands-on:**
+- Created dbo.orders with primary key, foreign key, and CHECK constraints.
+- Inserted and verified five sample retail orders.
+- Practiced SUM(), AVG(), MIN(), MAX(), and COUNT().
+- Applied WHERE filters to aggregate calculations.
+- Built status-wise and customer-wise reports using GROUP BY.
+- Filtered grouped results using HAVING.
+- Investigated SQL syntax and metadata errors.
+
+**Verified Results:**
+- Total orders: 5
+- Total order amount: 6400.00
+- Delivered orders: 3
+- Delivered order amount: 3500.00
+- Average order amount: 1280.00
+- Lowest order amount: 400.00
+- Highest order amount: 2500.00
+
+**Final Business Challenge — DE-206:**
+Identified customers whose non-cancelled order amounts total
+at least 1000. Verified customers: 101, 102, and 104.
+
+**Engineering Lessons:**
+- WHERE filters individual rows before grouping.
+- GROUP BY creates business reporting groups.
+- HAVING filters aggregated groups.
+- Order amounts are not automatically recognized revenue.
+- Financial calculations must follow verified business rules.
+- AI-assisted reporting should use validated SQL metrics.
+
+**Status:** Day 3 local SQL hands-on completed.
+Advanced SQL, Azure deployment, and AI implementation remain in progress.
+
 ## Flagship Project — RetailOps 360
 
 ### Production-Style Azure Data Reliability and Revenue Analytics Platform

@@ -2005,3 +2005,632 @@ PRODUCTION LESSONS
 DAY 02 STATUS:
 SQL practicals completed and verified.
 ==================================================
+
+# Day 03 — SQL Aggregations & Retail Sales Analytics
+
+## Topic 01: Creating a Relational Orders Table
+
+### Objective
+Create an orders table in RetailOps360 to practice sales aggregation, business reporting, and data quality validation.
+
+### SQL Data Types
+- INT: Whole numbers such as IDs.
+- DATE: Calendar dates.
+- DECIMAL(12,2): Exact numeric values with up to 12 total digits and 2 decimal places.
+- NVARCHAR(20): Unicode text with a maximum length of 20 characters.
+
+### Important Database Constraints
+- PRIMARY KEY: Uniquely identifies rows and disallows NULL values.
+- FOREIGN KEY: Ensures referenced customer IDs exist in the customers table.
+- NOT NULL: Requires a value to be supplied.
+- CHECK: Validates values against a specified rule.
+
+### SQL Table Definition
+
+```sql
+USE RetailOps360;
+GO
+
+CREATE TABLE dbo.orders
+(
+    order_id INT NOT NULL PRIMARY KEY,
+    customer_id INT NOT NULL,
+    order_date DATE NOT NULL,
+    order_amount DECIMAL(12,2) NOT NULL,
+    order_status NVARCHAR(20) NOT NULL,
+
+    CONSTRAINT FK_orders_customers
+        FOREIGN KEY (customer_id)
+        REFERENCES dbo.customers(customer_id),
+
+    CONSTRAINT CK_orders_nonnegative_amount
+        CHECK (order_amount >= 0)
+);
+GO
+```
+
+### Real-World Application
+Retail companies store customer orders to support revenue reporting, order tracking, data validation, refunds, and downstream analytics.
+
+### AI Connection
+Clean, structured orders data can support AI-assisted analytics, customer service applications, and business reporting. SQL remains the source of truth for verified numerical calculations.
+
+### Interview Questions
+
+Q: What is the difference between PRIMARY KEY and FOREIGN KEY?
+
+A: A primary key uniquely identifies a row. A foreign key enforces a valid relationship with another table.
+
+Q: Why use DECIMAL for order amounts?
+
+A: DECIMAL stores fixed-precision numeric values, making it appropriate for monetary calculations.
+
+Q: What does a CHECK constraint do?
+
+A: It rejects values that violate a defined validation rule.
+
+### Practical Status
+Pending table creation and verification.
+
+### Day 03 — Practical: Orders Table Schema Verification and First Insert
+
+**Schema verification:**
+
+```sql
+SELECT
+    COLUMN_NAME,
+    DATA_TYPE,
+    IS_NULLABLE
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_SCHEMA = 'dbo'
+  AND TABLE_NAME = 'orders'
+ORDER BY ORDINAL_POSITION;
+GO
+```
+
+**Verified:** Five expected columns exist. All five are NOT NULL.
+
+**Troubleshooting:** Msg 207 occurred when metadata column names were selected from dbo.orders instead of INFORMATION_SCHEMA.COLUMNS. Corrected the metadata source and verified the schema.
+
+**First sales order insert:**
+
+```sql
+INSERT INTO dbo.orders
+    (order_id, customer_id, order_date, order_amount, order_status)
+VALUES
+    (1001, 101, '2026-10-20', 1500.00, N'DELIVERED');
+GO
+```
+
+**Expected:** One row inserted, provided order_id 1001 does not already exist.
+
+**Engineering lesson:** Primary key, foreign key, NOT NULL and CHECK constraints protect data integrity at the database layer.
+
+**Status:** First insert pending execution.
+
+# Day 03 — Topic 02: SQL SUM() Aggregate Function
+
+## Definition
+SUM() calculates the total of non-NULL numeric values in a column or expression.
+
+## Why It Is Used
+- Calculate total sales.
+- Calculate total refunds.
+- Calculate total transaction amounts.
+- Support finance and business reporting.
+- Validate numeric totals during data pipelines.
+
+## Syntax
+
+```sql
+SELECT SUM(column_name) AS total_value
+FROM table_name;
+```
+
+## RetailOps360 Practical
+
+```sql
+SELECT
+    SUM(order_amount) AS total_sales
+FROM dbo.orders;
+GO
+```
+
+## Important Concepts
+- SUM() is an aggregate function.
+- SUM() ignores NULL input values.
+- SUM() without GROUP BY calculates one total across the selected rows.
+- SUM() normally returns NULL when no non-NULL values are available.
+- WHERE can restrict which rows contribute to SUM().
+- Order status and refund treatment must follow approved business rules.
+- DECIMAL values are preferable to approximate floating-point types for many financial calculations.
+
+## Real-Company Use Case
+A retail company calculates total eligible order amounts for daily revenue reporting.
+
+## AI Connection
+Use SQL to calculate and validate business metrics. AI can explain these metrics, but numeric answers should be grounded in verified source data.
+
+## Interview Question
+Q: What is SUM() in SQL?
+A: An aggregate function that adds non-NULL numeric values from selected rows.
+
+Q: Does SUM() include NULL values?
+A: No, NULL inputs are ignored.
+
+Q: Is total order amount always the same as revenue?
+A: No. Revenue depends on business rules, order status, refunds, adjustments and recognition policies.
+
+## Practical Status
+Pending verification.
+
+### Day 03 — SUM() with WHERE Filtering
+
+**Definition:** WHERE filters rows before an aggregate function such as SUM() calculates the result.
+
+**Real-company requirement:** Calculate the total amount of delivered orders.
+
+**SQL:**
+
+```sql
+SELECT
+    SUM(order_amount) AS delivered_order_total
+FROM dbo.orders
+WHERE order_status = N'DELIVERED';
+GO
+```
+
+**Expected result:** 3500.00
+
+**Verified source data:**
+- Order 1001 = 1500.00
+- Order 1003 = 750.00
+- Order 1005 = 1250.00
+
+**Important differences:**
+- SUM() without WHERE: Adds amounts from all order statuses.
+- SUM() with WHERE: Adds amounts only from matching rows.
+- Delivered order totals are not necessarily the same as accounting revenue.
+
+**AI connection:** An AI-powered reporting application should use validated SQL calculations for financial metrics rather than generate or guess numeric totals.
+
+**Practical status:** Pending SQL execution.
+
+### Day 03 — SQL Error Troubleshooting: SELECT * with SUM()
+
+**Error:** Msg 102 — Incorrect syntax near 'sum'.
+
+**Incorrect query:**
+```sql
+SELECT *
+SUM(order_amount) AS total_sales
+FROM dbo.orders;
+```
+
+**Problems:**
+1. Missing comma between SELECT expressions.
+2. Mixing all row-level columns (`*`) with a regular aggregate without appropriate grouping is not valid.
+
+**Correct query:**
+```sql
+SELECT SUM(order_amount) AS total_sales
+FROM dbo.orders;
+GO
+```
+
+**Expected:** 6400.00
+
+**Learning:** SELECT expressions require proper comma separators. Aggregate functions such as SUM() summarize rows into a result. Use GROUP BY for grouped results or window functions for row-level details with aggregates.
+
+# Day 03 — Topic 03: SQL AVG() Aggregate Function
+
+## Definition
+AVG() calculates the arithmetic mean of non-NULL numeric values in a column or expression.
+
+## Syntax
+
+```sql
+SELECT AVG(column_name) AS average_value
+FROM table_name;
+```
+
+## Example — Average Order Amount
+
+```sql
+SELECT
+    AVG(order_amount) AS average_order_amount
+FROM dbo.orders;
+GO
+```
+
+Expected output based on 5 verified orders: 1280.000000
+
+## How AVG Works
+Average = Sum of non-NULL values / Count of non-NULL values.
+
+Example:
+(1500 + 2500 + 750 + 400 + 1250) / 5 = 1280
+
+## Difference Between SUM, AVG and COUNT
+- SUM(): Calculates a total.
+- AVG(): Calculates an arithmetic average.
+- COUNT(*): Counts rows.
+
+## Important Technical Notes
+- AVG() ignores NULL numeric values.
+- AVG() returns NULL if there are no non-NULL input values.
+- Result precision depends on the underlying numeric type.
+- WHERE can filter the rows included in AVG().
+- Averages should follow the business metric definition.
+
+## Real-Company Use Case
+A retail company calculates average order amount and average delivered-order value to understand transaction patterns.
+
+## AI Connection
+An AI analytics assistant should retrieve verified average values from SQL rather than invent calculations.
+
+## Interview Q&A
+
+Q: What is AVG() in SQL?
+A: An aggregate function that calculates the arithmetic mean of non-NULL numeric values.
+
+Q: Does AVG() ignore NULL values?
+A: Yes.
+
+Q: What is the difference between SUM() and AVG()?
+A: SUM() adds values; AVG() calculates their arithmetic mean.
+
+## Practical Status
+Pending SQL verification.
+
+# Day 03 — Topic 04: SQL MIN() and MAX()
+
+## Definition
+
+MIN() returns the smallest non-NULL value in a column or expression.
+
+MAX() returns the largest non-NULL value in a column or expression.
+
+## Syntax
+
+```sql
+SELECT
+    MIN(column_name) AS minimum_value,
+    MAX(column_name) AS maximum_value
+FROM table_name;
+```
+
+## RetailOps360 Practical
+
+```sql
+SELECT
+    MIN(order_amount) AS lowest_order_amount,
+    MAX(order_amount) AS highest_order_amount
+FROM dbo.orders;
+GO
+```
+
+Expected results based on current orders:
+- Lowest amount = 400.00
+- Highest amount = 2500.00
+
+## Filtering with WHERE
+
+```sql
+SELECT
+    MIN(order_amount) AS lowest_delivered_amount,
+    MAX(order_amount) AS highest_delivered_amount
+FROM dbo.orders
+WHERE order_status = N'DELIVERED';
+GO
+```
+
+Expected:
+- Minimum delivered amount = 750.00
+- Maximum delivered amount = 1500.00
+
+## Important Points
+
+- MIN() returns the smallest value.
+- MAX() returns the largest value.
+- Both ignore NULL inputs.
+- Both work with numeric values and dates, among other supported comparable types.
+- WHERE filters rows before aggregation.
+- Without GROUP BY, each aggregate produces a result across all eligible rows.
+- MIN() and MAX() alone do not identify the corresponding row or order ID.
+- Appropriate indexes may improve performance.
+
+## Real-Company Example
+
+A retail business calculates minimum and maximum order amounts to understand order value ranges, investigate unusual transactions and validate reporting data.
+
+## AI Connection
+
+AI-assisted business reports should reference SQL-verified minimum and maximum metrics rather than invent figures.
+
+## Interview Questions
+
+Q1: What is MIN() in SQL?
+A: An aggregate function returning the smallest non-NULL value.
+
+Q2: What is MAX() in SQL?
+A: An aggregate function returning the largest non-NULL value.
+
+Q3: Can MIN() and MAX() work on dates?
+A: Yes. They can retrieve earliest and latest dates.
+
+Q4: Does MAX(order_amount) return the order_id?
+A: No. It returns only the maximum amount expression.
+
+## Practical Status
+
+Pending execution and verification.
+
+# Day 03 — Topic 05: SQL GROUP BY
+
+## Definition
+GROUP BY divides query results into groups based on one or more columns and allows aggregate calculations for each group.
+
+## Purpose
+GROUP BY is used to prepare business summaries such as:
+- Orders per status
+- Total amount per customer
+- Sales per product
+- Transactions per day
+- Revenue by region
+
+## Syntax
+
+```sql
+SELECT
+    grouping_column,
+    COUNT(*) AS row_count,
+    SUM(amount_column) AS total_amount
+FROM table_name
+GROUP BY grouping_column;
+```
+
+## RetailOps360 Example
+
+```sql
+SELECT
+    order_status,
+    COUNT(*) AS total_orders,
+    SUM(order_amount) AS total_amount
+FROM dbo.orders
+GROUP BY order_status
+ORDER BY order_status ASC;
+GO
+```
+
+## Expected Results
+
+CANCELLED: 1 order, 400.00
+DELIVERED: 3 orders, 3500.00
+PENDING: 1 order, 2500.00
+
+## How GROUP BY Works
+1. FROM identifies the source.
+2. WHERE, if present, filters individual rows.
+3. GROUP BY forms groups based on equal grouping values.
+4. Aggregate functions calculate values for each group.
+5. ORDER BY sorts the final result if requested.
+
+These steps describe logical SQL processing; SQL Server may optimize the physical execution plan.
+
+## Important Rules
+- Nonaggregated columns selected from the table must normally appear in GROUP BY.
+- Aggregate functions such as COUNT(), SUM(), AVG(), MIN(), and MAX() can operate on each group.
+- GROUP BY does not guarantee output order.
+- Use ORDER BY when sorted output is required.
+- NULL grouping values form a group.
+- SQL Server may use hash or stream aggregation to process groups.
+
+## SUM() vs GROUP BY
+
+SUM() without GROUP BY:
+Returns one total over all qualifying rows.
+
+SUM() with GROUP BY:
+Returns one total for each group.
+
+## Real-Company Use
+Retail operations teams generate daily status-wise order volume and amount reports to monitor pending, delivered, and cancelled orders.
+
+## AI Connection
+AI reporting assistants can use verified GROUP BY query results to answer questions such as "How many orders are pending?" instead of guessing from raw data.
+
+## Interview Q&A
+
+Q1: What is GROUP BY?
+A: It groups rows using specified columns so aggregate functions can calculate results per group.
+
+Q2: What is the difference between WHERE and GROUP BY?
+A: WHERE filters rows; GROUP BY groups the qualifying rows.
+
+Q3: Can GROUP BY be used with multiple columns?
+A: Yes. Each unique combination creates a group.
+
+Q4: Does GROUP BY automatically sort rows?
+A: No. Use ORDER BY for guaranteed presentation order.
+
+Q5: What happens if a SELECT column is neither grouped nor aggregated?
+A: SQL Server generally rejects the query with an aggregation error.
+
+## Practical Status
+Pending execution and verification.
+
+### Day 03 — GROUP BY Multiple Columns
+
+**Definition:** GROUP BY with multiple columns creates groups based on each unique combination of the specified column values.
+
+**Syntax:**
+
+```sql
+SELECT
+    column1,
+    column2,
+    COUNT(*) AS total_records,
+    SUM(amount_column) AS total_amount
+FROM table_name
+GROUP BY column1, column2;
+```
+
+**RetailOps360 Practical:**
+
+```sql
+SELECT
+    customer_id,
+    order_status,
+    COUNT(*) AS order_count,
+    SUM(order_amount) AS total_amount
+FROM dbo.orders
+GROUP BY customer_id, order_status
+ORDER BY customer_id ASC, order_status ASC;
+GO
+```
+
+**Key learning:**
+- GROUP BY customer_id creates customer-wise groups.
+- GROUP BY customer_id, order_status creates customer-and-status-wise groups.
+- Every unique combination forms a separate group.
+- ORDER BY controls how the grouped results are displayed.
+- The combined group totals should reconcile to the source totals.
+
+**Real-company use:** Customer-wise order status reporting, department-wise monthly expenses, and product-wise regional sales analysis.
+
+**AI connection:** AI-powered business assistants can use grouped SQL results to answer customer-specific analytics questions using verified numbers.
+
+**Practical status:** Pending verification.
+
+# Day 03 — Topic 06: SQL HAVING
+
+## Definition
+HAVING filters groups created by GROUP BY based on a condition. It is commonly used with aggregate functions.
+
+## Basic Syntax
+
+```sql
+SELECT
+    grouping_column,
+    COUNT(*) AS total_records
+FROM table_name
+GROUP BY grouping_column
+HAVING COUNT(*) > 1;
+```
+
+## WHERE vs HAVING
+
+WHERE:
+- Filters individual rows before grouping.
+- Commonly checks conditions on row values.
+- Cannot directly use aggregate functions such as COUNT(*) in its condition.
+
+HAVING:
+- Filters groups after grouping.
+- Supports aggregate conditions such as COUNT(*) > 1.
+- Commonly appears with GROUP BY.
+
+## RetailOps360 Practical
+
+```sql
+SELECT
+    order_status,
+    COUNT(*) AS total_orders,
+    SUM(order_amount) AS total_amount
+FROM dbo.orders
+GROUP BY order_status
+HAVING COUNT(*) > 1
+ORDER BY order_status ASC;
+GO
+```
+
+Expected result:
+DELIVERED | 3 | 3500.00
+
+## SQL Logical Processing Order
+
+1. FROM
+2. WHERE
+3. GROUP BY
+4. HAVING
+5. SELECT
+6. ORDER BY
+
+Note: This is the simplified logical processing order. The SQL Server query optimizer can use a different physical execution plan.
+
+## Real-Company Use Cases
+
+- Identify days with more than 100 failed transactions.
+- Find customers with multiple orders.
+- Find stores with grouped order amounts exceeding a threshold.
+- Generate exception reports based on aggregated metrics.
+
+## Performance and Best Practices
+
+- Filter unnecessary source rows early using WHERE where appropriate.
+- Use HAVING to filter aggregate results.
+- Apply ORDER BY for deterministic display order.
+- Validate filtered group counts against source data.
+- Do not assume order amounts equal recognized revenue without business definitions.
+
+## Interview Questions
+
+Q1: What is HAVING in SQL?
+A: HAVING filters grouped results using conditions, commonly aggregate expressions.
+
+Q2: Difference between WHERE and HAVING?
+A: WHERE filters rows before grouping; HAVING filters groups after grouping.
+
+Q3: Can HAVING use COUNT(*)?
+A: Yes.
+
+Q4: Can WHERE use COUNT(*) directly?
+A: No, not as an aggregate predicate at the same query level.
+
+Q5: Can WHERE and HAVING be used together?
+A: Yes. WHERE filters source rows first; HAVING filters the resulting groups.
+
+## AI Connection
+Use SQL HAVING queries to provide verified grouped business insights to AI-assisted reporting applications.
+
+## Practical Status
+Pending execution and verification.
+
+### Day 03 — Final SQL Challenge: DE-206
+
+**Business requirement:** Exclude cancelled orders and identify customers with total qualifying order amounts of at least 1000.
+
+**Verified SQL:**
+
+```sql
+SELECT
+    customer_id,
+    COUNT(*) AS total_orders,
+    SUM(order_amount) AS total_amount
+FROM dbo.orders
+WHERE order_status <> N'CANCELLED'
+GROUP BY customer_id
+HAVING SUM(order_amount) >= 1000
+ORDER BY customer_id ASC;
+GO
+```
+
+**Actual verified results:**
+
+| customer_id | total_orders | total_amount |
+|---|---:|---:|
+| 101 | 1 | 1500.00 |
+| 102 | 1 | 2500.00 |
+| 104 | 1 | 1250.00 |
+
+**Key learning:**
+- WHERE removes unwanted individual records before grouping.
+- GROUP BY calculates customer-wise metrics.
+- HAVING filters grouped results using aggregate conditions.
+- ORDER BY controls final display order.
+- Business metrics must follow precisely defined filtering rules.
+
+**AI connection:** AI-assisted analytics should use verified SQL query results as its numerical source of truth.
+
+**Status:** Completed and verified.
