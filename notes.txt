@@ -2634,3 +2634,682 @@ GO
 **AI connection:** AI-assisted analytics should use verified SQL query results as its numerical source of truth.
 
 **Status:** Completed and verified.
+
+# Day 04 — Topic 01: SQL INNER JOIN
+
+## 1. Definition
+INNER JOIN combines matching rows from two tables based on a specified join condition.
+
+## 2. Why JOIN Is Used
+Relational databases often store related business data in separate tables. JOIN allows us to combine the information for reporting, validation, and analytics.
+
+## 3. RetailOps360 Tables
+
+dbo.customers:
+- customer_id (Primary Key)
+- customer_name
+- city
+
+dbo.orders:
+- order_id (Primary Key)
+- customer_id (Foreign Key)
+- order_date
+- order_amount
+- order_status
+
+Relationship: One customer can have many orders.
+
+## 4. SQL Syntax
+
+```sql
+SELECT table1.column1, table2.column2
+FROM table1
+INNER JOIN table2
+    ON table1.common_column = table2.common_column;
+```
+
+## 5. RetailOps360 INNER JOIN
+
+```sql
+SELECT
+    c.customer_id,
+    c.customer_name,
+    o.order_id,
+    o.order_amount,
+    o.order_status
+FROM dbo.customers AS c
+INNER JOIN dbo.orders AS o
+    ON c.customer_id = o.customer_id
+ORDER BY o.order_id ASC;
+GO
+```
+
+## 6. SQL Keywords
+- INNER JOIN: Returns matching rows.
+- ON: Defines the join matching condition.
+- AS: Assigns a temporary table or column alias.
+- c.customer_id: Refers to customer_id in the customers table.
+- o.customer_id: Refers to customer_id in the orders table.
+
+## 7. Expected Results
+Five matching order records, assuming the current sample dataset is unchanged.
+
+Customers with no orders do not appear in an INNER JOIN result.
+
+Customer 101 appears twice because the customer has two distinct orders.
+
+## 8. Important Engineering Concepts
+- Primary keys uniquely identify records.
+- Foreign keys enforce referential integrity.
+- INNER JOIN is based on matching values.
+- JOIN does not require a declared foreign key, but the relationship must be correct.
+- One-to-many joins can return multiple rows for one customer.
+- Incorrect join conditions can multiply rows and inflate aggregations.
+- JOIN results have no guaranteed presentation order without ORDER BY.
+- A regular equality join does not match NULL values to NULL values.
+
+## 9. Production Best Practices
+- Use clear table aliases.
+- Explicitly select required columns.
+- Validate join keys and relationships.
+- Compare source and output record counts.
+- Investigate unexpected duplicates.
+- Avoid unnecessary joins in large reporting queries.
+
+## 10. Real-Company Scenario
+Ticket DE-301: Combine customer master data with order transactions to produce a customer-level order details report.
+
+## 11. AI Connection
+AI-assisted business analytics can retrieve grounded customer order details using validated SQL JOIN queries. Generated SQL and access permissions must be checked before execution.
+
+## 12. Interview Questions
+
+Q1: What is INNER JOIN?
+A: It returns matching rows from two related tables.
+
+Q2: What does ON do?
+A: It defines the condition used to match records between tables.
+
+Q3: Why might a customer appear multiple times?
+A: A one-to-many relationship can produce one result row for each matching order.
+
+Q4: Do INNER JOINs include customers without orders?
+A: No, not when joining on the matching customer_id condition.
+
+Q5: Is a foreign key mandatory for JOIN?
+A: No. A JOIN can work without a declared foreign key.
+
+## Practical Status
+Pending execution and verification.
+
+# Day 04 — Topic 02: SQL LEFT JOIN
+
+## Definition
+LEFT JOIN (LEFT OUTER JOIN) returns all rows from the left table and matching rows from the right table. When no matching row exists, right-table columns are represented by NULL in the query result.
+
+## Syntax
+
+```sql
+SELECT
+    a.column1,
+    b.column2
+FROM table_a AS a
+LEFT JOIN table_b AS b
+    ON a.id = b.id;
+```
+
+## RetailOps360 Practical
+
+```sql
+SELECT
+    c.customer_id,
+    c.customer_name,
+    o.order_id,
+    o.order_amount,
+    o.order_status
+FROM dbo.customers AS c
+LEFT JOIN dbo.orders AS o
+    ON c.customer_id = o.customer_id
+ORDER BY c.customer_id, o.order_id;
+GO
+```
+
+## Expected Results
+With the current sample data:
+- 8 customers
+- 5 orders
+- 4 customers with orders
+- 4 customers without orders
+- 9 LEFT JOIN result rows, because customer 101 has 2 orders
+
+Customers 105, 106, 107 and 108 have no matching orders. Their order columns appear as NULL.
+
+## INNER JOIN vs LEFT JOIN
+- INNER JOIN: Returns only matching row pairs.
+- LEFT JOIN: Retains all left-table rows, even when no right-table match exists.
+
+## Important Concepts
+- A LEFT JOIN can return more rows than the left table when multiple matches exist.
+- NULLs on the right side can indicate unmatched rows.
+- These NULL placeholders are not necessarily stored NULL values in the right table.
+- LEFT JOIN does not guarantee sorting; use ORDER BY.
+- Filtering right-table columns in WHERE can remove unmatched rows.
+- The join condition should reflect the correct business relationship.
+- LEFT OUTER JOIN and LEFT JOIN have the same meaning in SQL Server.
+
+## Real-Company Scenario
+Ticket DE-303: Create a customer order coverage report including customers with and without orders.
+
+## AI Connection
+AI-assisted customer analytics should account for customers with zero matching transactions instead of silently excluding them.
+
+## Interview Questions
+
+Q1: What is LEFT JOIN?
+A: It returns all rows from the left table and matching rows from the right table.
+
+Q2: What happens when no match exists?
+A: The right-table columns appear as NULL in the result.
+
+Q3: Does LEFT JOIN always return the same number of rows as the left table?
+A: No. Multiple matching right-table rows can increase the result row count.
+
+Q4: What is the difference between LEFT JOIN and INNER JOIN?
+A: INNER JOIN keeps only matches. LEFT JOIN also keeps unmatched left-side records.
+
+Q5: Why must WHERE filters be used carefully with LEFT JOIN?
+A: A filter on a right-side column may eliminate rows where that column is NULL due to no match.
+
+## Practical Status
+Pending execution and verification.
+
+### Day 04 — LEFT ANTI JOIN: Customers Without Orders
+
+**Definition:**
+A LEFT anti-join pattern returns rows from the left table that have no matching row in the right table.
+
+**SQL Server Example:**
+
+```sql
+SELECT
+    c.customer_id,
+    c.customer_name
+FROM dbo.customers AS c
+LEFT JOIN dbo.orders AS o
+    ON c.customer_id = o.customer_id
+WHERE o.order_id IS NULL
+ORDER BY c.customer_id ASC;
+GO
+```
+
+**How it works:**
+1. LEFT JOIN preserves every customer.
+2. Matching order details are attached where available.
+3. Unmatched customers receive NULL in right-table result columns.
+4. WHERE o.order_id IS NULL retains only customers without orders.
+
+**Expected Results:**
+- 105 — SIVA
+- 106 — PARVATHI
+- 107 — SUNNY
+- 108 — AKHIL
+
+**Important:**
+- The right-side column used for IS NULL should reliably be non-NULL for matched records.
+- In this example, order_id is a PRIMARY KEY, so it cannot contain a stored NULL.
+- NOT EXISTS is another common approach for finding unmatched records.
+- Verify source-data coverage before making business decisions.
+
+**Real-company application:**
+Find customers without purchases, unmatched reference records, or missing related transactions.
+
+**Interview Q&A**
+
+Q: How can you find customers without orders?
+
+A: Use LEFT JOIN from customers to orders and filter unmatched results using WHERE o.order_id IS NULL, or use NOT EXISTS.
+
+Q: Why doesn't INNER JOIN work for this requirement?
+
+A: INNER JOIN excludes customers who have no matching orders.
+
+**Practical status:** Pending verification.
+### Day 04 — LEFT JOIN: ON vs WHERE Filtering
+
+**Core difference**
+
+ON:
+Defines which right-table rows are eligible to match. LEFT JOIN still preserves unmatched left-table rows.
+
+WHERE:
+Filters rows in the joined result. A WHERE condition requiring a right-table value may remove unmatched left-table rows.
+
+**Example: Preserve all customers and show delivered orders only**
+
+```sql
+SELECT
+    c.customer_id,
+    c.customer_name,
+    o.order_id,
+    o.order_status
+FROM dbo.customers AS c
+LEFT JOIN dbo.orders AS o
+    ON c.customer_id = o.customer_id
+   AND o.order_status = N'DELIVERED'
+ORDER BY c.customer_id ASC;
+GO
+```
+
+**Expected:** 8 customer rows with current sample data.
+
+**Important example:**
+Customer 102 (SAI) has a PENDING order but no DELIVERED order. The filtered LEFT JOIN returns SAI with NULL right-table columns.
+
+**Production lesson:**
+When the business requires all left-table records, placing right-table filters inside WHERE can incorrectly remove unmatched records.
+
+**AI connection:**
+Validate AI-generated JOIN conditions and resulting row counts before using the query for business analytics.
+
+**Interview question:**
+Q: What is the difference between placing a right-table condition in ON versus WHERE for a LEFT JOIN?
+
+A: ON restricts matching while preserving all left rows. WHERE filters the resulting rows and can eliminate unmatched left rows.
+
+**Practical status:** Pending verification.
+
+# Day 04 — Additional Notes: LEFT vs RIGHT Table and JOIN Direction
+
+## 1. How to Identify LEFT and RIGHT Tables?
+
+**Definition:** In a two-table SQL JOIN, the table before JOIN is the left input, and the table after JOIN is the right input.
+
+**Example:**
+
+```sql
+FROM dbo.customers AS c
+LEFT JOIN dbo.orders AS o
+    ON c.customer_id = o.customer_id;
+```
+
+- LEFT TABLE = dbo.customers
+- RIGHT TABLE = dbo.orders
+- LEFT JOIN preserves all customers.
+
+**Important:** LEFT and RIGHT are decided by query position, not by table creation order, primary keys, foreign keys, or aliases.
+
+## 2. What Happens If We Reverse the Tables?
+
+```sql
+FROM dbo.orders AS o
+LEFT JOIN dbo.customers AS c
+    ON o.customer_id = c.customer_id;
+```
+
+Now:
+- LEFT TABLE = dbo.orders
+- RIGHT TABLE = dbo.customers
+- LEFT JOIN preserves all orders.
+
+**Current RetailOps360 results:**
+- Total orders = 5
+- All orders have matching customers.
+- Expected result = 5 rows.
+
+Customers without orders will not appear.
+
+## 3. Why Do We Need RIGHT JOIN?
+
+RIGHT JOIN preserves all rows from the right input.
+
+Example:
+
+```sql
+SELECT
+    c.customer_id,
+    c.customer_name,
+    o.order_id,
+    o.order_amount
+FROM dbo.orders AS o
+RIGHT JOIN dbo.customers AS c
+    ON o.customer_id = c.customer_id
+ORDER BY c.customer_id, o.order_id;
+GO
+```
+
+**Actual practical result:**
+- Total customers = 8
+- Customers without orders = 4
+- Joined output rows = 9
+- Customer 101 (RAVI) appears twice because he has two orders.
+
+**Practical status: Completed and verified.**
+
+## 4. Can LEFT JOIN Replace RIGHT JOIN?
+
+Yes. A RIGHT JOIN can be rewritten as an equivalent LEFT JOIN by reversing the table positions.
+
+**Method A — LEFT JOIN**
+
+```sql
+SELECT c.customer_name, o.order_id
+FROM dbo.customers AS c
+LEFT JOIN dbo.orders AS o
+    ON c.customer_id = o.customer_id;
+```
+
+**Method B — RIGHT JOIN**
+
+```sql
+SELECT c.customer_name, o.order_id
+FROM dbo.orders AS o
+RIGHT JOIN dbo.customers AS c
+    ON o.customer_id = c.customer_id;
+```
+
+Both queries preserve all customers and produce the same rows, assuming the same join condition. Row display order is not guaranteed unless ORDER BY is specified.
+
+## 5. Why Is RIGHT JOIN Available If LEFT JOIN Can Replace It?
+
+- RIGHT JOIN provides flexibility in query writing.
+- It can preserve the right-side input without rearranging a query.
+- Many developers prefer equivalent LEFT JOIN queries for readability.
+- RIGHT JOIN is not inherently faster or slower than LEFT JOIN.
+- Performance depends on the optimizer, indexes, statistics, and query plan.
+
+## 6. Comparison Using RetailOps360
+
+| Query | Preserved records | Expected result rows |
+|---|---|---:|
+| customers LEFT JOIN orders | All customers | 9 |
+| orders RIGHT JOIN customers | All customers | 9 |
+| orders LEFT JOIN customers | All orders | 5 |
+| customers RIGHT JOIN orders | All orders | 5 |
+
+The above counts are based on our current sample data.
+
+## 7. Important Production Concepts
+
+- LEFT JOIN preserves the left input.
+- RIGHT JOIN preserves the right input.
+- INNER JOIN returns matching row pairs.
+- FULL OUTER JOIN preserves both inputs.
+- Multiple matching records can increase JOIN output rows.
+- A declared foreign key is not required to perform a JOIN.
+- Always verify join keys and result counts.
+- SQL Server may rewrite equivalent joins internally for optimization.
+
+## 8. Interview Questions and Answers
+
+**Q1: How do you identify left and right tables in SQL?**
+
+A: The input before JOIN is the left input, and the input after JOIN is the right input.
+
+**Q2: Does LEFT JOIN always preserve customers?**
+
+A: No. It preserves whichever table or joined input is on the left.
+
+**Q3: If we write orders LEFT JOIN customers, what happens?**
+
+A: All orders are preserved, with matching customer details where available.
+
+**Q4: Why use RIGHT JOIN when LEFT JOIN can produce the same result?**
+
+A: RIGHT JOIN provides an alternative syntax for preserving the right input without reversing the input order.
+
+**Q5: Is RIGHT JOIN faster than LEFT JOIN?**
+
+A: Not inherently. Equivalent queries can have similar execution plans.
+
+**Q6: Does the ON condition decide which table is left or right?**
+
+A: No. Input position determines left and right; ON specifies which records match.
+
+## 9. AI Data Engineering Connection
+
+When an AI assistant generates SQL JOIN queries, the data engineer must verify:
+- Which table must be preserved?
+- Is LEFT, RIGHT, or INNER JOIN appropriate?
+- Are join keys correct?
+- Are customers or transactions unexpectedly missing?
+- Are duplicate matches inflating totals?
+
+AI-generated SQL should be reviewed and validated using source data.
+
+## Learning Outcome
+
+Understood and verified SQL JOIN directions, table positions, equivalent LEFT/RIGHT JOIN queries, and real-world reporting implications.
+
+Status: Completed.
+
+# Day 04 — Topic 04: FULL OUTER JOIN
+
+## Definition
+FULL OUTER JOIN returns matching rows from both tables and unmatched rows from either table.
+
+For unmatched rows, columns from the missing side appear as NULL in the result.
+
+## Syntax
+
+```sql
+SELECT
+    a.column1,
+    b.column2
+FROM table_a AS a
+FULL OUTER JOIN table_b AS b
+    ON a.id = b.id;
+```
+
+## RetailOps360 Practical
+
+```sql
+SELECT
+    c.customer_id,
+    c.customer_name,
+    o.order_id,
+    o.order_amount
+FROM dbo.customers AS c
+FULL OUTER JOIN dbo.orders AS o
+    ON c.customer_id = o.customer_id
+ORDER BY c.customer_id ASC, o.order_id ASC;
+GO
+```
+
+## Current Dataset
+- Customers: 8
+- Orders: 5
+- Customers with orders: 4
+- Customers without orders: 4
+- Expected FULL OUTER JOIN result: 9 rows
+
+The orders table has a foreign key referencing customers. Therefore, current valid order records cannot reference nonexistent customers.
+
+## JOIN Comparison
+- INNER JOIN: Matching rows only.
+- LEFT JOIN: All left rows plus matching right rows.
+- RIGHT JOIN: All right rows plus matching left rows.
+- FULL OUTER JOIN: Matched and unmatched rows from both sides.
+
+## Production Use Cases
+- Reconcile two source datasets.
+- Detect missing relationships.
+- Compare records from separate systems.
+- Investigate data quality issues during migration.
+
+## Important Points
+- FULL JOIN and FULL OUTER JOIN are equivalent in SQL Server.
+- Unmatched-side columns appear as NULL.
+- Multiple matches may increase output row count.
+- Output order is not guaranteed without ORDER BY.
+- FULL OUTER JOIN can be more expensive than simpler joins depending on input sizes and execution plans.
+- Correct join keys are essential to avoid incorrect matching and inflated row counts.
+
+## Interview Questions
+
+Q1: What is FULL OUTER JOIN?
+A: A join returning matched rows and unmatched rows from both inputs.
+
+Q2: Difference between LEFT JOIN and FULL OUTER JOIN?
+A: LEFT JOIN preserves only the left input; FULL OUTER JOIN preserves both inputs.
+
+Q3: Why might FULL JOIN and LEFT JOIN return the same rows?
+A: If every right-side record has a matching left-side record, there are no additional right-only rows for FULL JOIN to return.
+
+## AI Connection
+FULL OUTER JOIN can support source-data reconciliation and AI-assisted data quality analysis. SQL should identify mismatches before AI generates explanations.
+
+## Practical Status
+Pending verification.
+
+### Day 04 — Troubleshooting: FULL OUTER JOIN ON vs WHERE
+
+**Problem:** Expected 4 unmatched customers, but SQL returned 13 rows.
+
+**Root Cause:** IS NULL conditions were incorrectly placed in the ON clause instead of defining the actual join relationship.
+
+**Incorrect logic:**
+```sql
+ON c.customer_id IS NULL
+OR o.order_id IS NULL
+```
+
+This matched no row pairs in our dataset, causing FULL OUTER JOIN to return 8 unmatched customer rows and 5 unmatched order rows.
+
+**Correct logic:**
+```sql
+ON c.customer_id = o.customer_id
+WHERE c.customer_id IS NULL
+   OR o.order_id IS NULL
+```
+
+**Key learning:**
+- ON defines the matching relationship.
+- WHERE filters the joined output.
+- FULL OUTER JOIN preserves unmatched rows from both inputs.
+- SQL executing successfully does not guarantee business correctness.
+- Always validate row counts and expected matching relationships.
+
+**Interview Q&A**
+
+Q: Why did a FULL OUTER JOIN return 13 rows instead of 4?
+
+A: The ON predicate did not match any customer-order pairs, so all 8 customer records and all 5 order records were returned separately as unmatched rows.
+
+Q: How do you find unmatched records on both sides?
+
+A: Use FULL OUTER JOIN with the correct key equality in ON, then filter for NULL values in reliably non-NULL key columns on either side.
+
+### Day 04 — FULL OUTER JOIN Orphan Order Simulation
+
+**Definition:**
+An orphan order is an order referencing a customer that does not exist in the customer master data.
+
+**New SQL concepts:**
+- CTE (WITH): Creates a named result set used by one SQL statement.
+- UNION ALL: Combines query results without removing duplicates.
+- FULL OUTER JOIN: Preserves unmatched rows from both inputs.
+
+**Simulation query:**
+
+```sql
+WITH sample_orders AS
+(
+    SELECT order_id, customer_id
+    FROM dbo.orders
+    UNION ALL
+    SELECT 9999, 999
+)
+SELECT
+    c.customer_id,
+    c.customer_name,
+    o.order_id,
+    o.customer_id AS order_customer_id
+FROM dbo.customers AS c
+FULL OUTER JOIN sample_orders AS o
+    ON c.customer_id = o.customer_id
+WHERE c.customer_id IS NULL
+   OR o.order_id IS NULL
+ORDER BY c.customer_id, o.order_id;
+GO
+```
+
+**Expected results:**
+- Four customers without orders
+- One simulated orphan order (9999, customer 999)
+
+**Important:** CTE and UNION ALL create a temporary query result here. No database table records are inserted or modified.
+
+**Real-world use:** Detect missing parent records during data ingestion, migration, and source-system reconciliation.
+
+**AI connection:** SQL can detect mismatches reliably; an AI assistant can help summarize the resulting data quality incident.
+
+**Status:** Pending simulation verification.
+
+### Day 04 — Final Orphan Order Simulation Results
+
+**Ticket:** DE-306 — Orphan Order Detection
+
+**Technologies:** SQL Server, CTE, UNION ALL, FULL OUTER JOIN
+
+**Actual verified results:**
+- Simulated orphan order: 9999, referencing missing customer 999
+- Customers without orders: 105, 106, 107, 108
+- Total unmatched result rows: 5
+
+**Key learning:**
+- A CTE provides a named result for one SQL statement.
+- UNION ALL combines results without removing duplicates.
+- FULL OUTER JOIN can detect missing relationships on both sides.
+- Correct ON conditions are essential for accurate matching.
+- IS NULL conditions can identify unmatched records.
+- Simulated query data does not modify the source tables.
+- Production mismatches require investigation before correction.
+
+**AI Integration:**
+AI can summarize verified data quality incidents, but SQL and source-system validation must establish the actual mismatch.
+
+**Practical Status:** Successfully completed and verified.
+
+### Day 04 — Deep Explanation: CTE + UNION ALL + FULL OUTER JOIN
+
+**Business problem:** Identify customers without orders and orders without matching customers.
+
+**CTE: WITH sample_orders AS (...)**
+- Creates a named query result for the following SQL statement.
+- Does not create a permanent table.
+- The SQL optimizer may inline or otherwise optimize the CTE; it is not necessarily materialized.
+
+**UNION ALL**
+- Combines the 5 existing orders with one simulated order.
+- Simulated values: order_id = 9999, customer_id = 999.
+- Returns 6 order rows in the CTE result.
+- Does not modify the original orders table.
+
+**FULL OUTER JOIN**
+- Combines matching customers and orders.
+- Preserves customers without orders.
+- Preserves orders without customers.
+- Current simulation produces 10 joined rows before the mismatch filter.
+
+**ON c.customer_id = o.customer_id**
+- Defines the actual relationship between customers and orders.
+- Never replace the join key relationship with the mismatch filter.
+
+**WHERE c.customer_id IS NULL OR o.order_id IS NULL**
+- Finds records unmatched on either side.
+- c.customer_id IS NULL identifies orphan orders.
+- o.order_id IS NULL identifies customers without orders.
+- Returns 5 mismatched rows in this simulation.
+
+**Final verified results**
+- 4 customers without orders: 105, 106, 107, 108.
+- 1 simulated orphan order: 9999 referencing customer 999.
+- Total output: 5 rows.
+
+**Production lesson**
+Source data reconciliation must distinguish genuine missing relationships from incomplete source ingestion and late-arriving records.
+
+**Interview question**
+Q: Why do we use FULL OUTER JOIN instead of INNER JOIN for reconciliation?
+
+A: INNER JOIN excludes unmatched records. FULL OUTER JOIN preserves unmatched rows from both sources, allowing missing relationships to be investigated.

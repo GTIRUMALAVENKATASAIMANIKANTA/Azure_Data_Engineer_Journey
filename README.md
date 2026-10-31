@@ -158,6 +158,41 @@ at least 1000. Verified customers: 101, 102, and 104.
 **Status:** Day 3 local SQL hands-on completed.
 Advanced SQL, Azure deployment, and AI implementation remain in progress.
 
+### Day 4 — SQL JOINs and Data Reconciliation
+
+**Environment:** SQL Server 2025, RetailOps360 database.
+
+**Completed Skills:**
+- INNER JOIN and filtering with WHERE
+- LEFT JOIN and LEFT anti-join patterns
+- RIGHT JOIN and equivalent LEFT JOIN queries
+- FULL OUTER JOIN
+- ON vs WHERE filtering differences
+- One-to-many relationships and join row counts
+- CTE and UNION ALL fundamentals
+- Missing relationship and orphan order detection
+- SQL logical error investigation
+
+**Verified Practical Results:**
+- Customer records: 8
+- Order records: 5
+- INNER JOIN result: 5 rows
+- Customer-preserving LEFT JOIN: 9 rows
+- Customers without orders: 4
+- Simulated orphan order: 9999 referencing customer 999
+- Final reconciliation simulation: 5 unmatched rows
+
+**Production Engineering Lessons:**
+- Validate JOIN conditions and business relationships.
+- Incorrect JOIN predicates can inflate result counts.
+- LEFT and RIGHT JOIN preserve different inputs.
+- ON and WHERE placement can change outer JOIN results.
+- Data reconciliation helps identify missing relationships.
+- SQL-verified data quality results can support AI-assisted incident analysis.
+
+**Status:** Day 4 local SQL practicals completed and verified.
+Advanced SQL and Azure AI implementation remain in progress.
+
 ## Flagship Project — RetailOps 360
 
 ### Production-Style Azure Data Reliability and Revenue Analytics Platform
